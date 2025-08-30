@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import UnlockButton from './UnlockButton.jsx';
 import UpgradeModal from './UpgradeModal.jsx';
+import Scheduler from './Scheduler.jsx';
 
 export default function Settings({ theme, onChangeTheme }) {
   const [showUpgrade, setShowUpgrade] = useState(false);
@@ -48,6 +49,9 @@ export default function Settings({ theme, onChangeTheme }) {
             </div>
           </div>
         </div>
+      </div>
+      <div className="section" style={{ marginTop: 16 }}>
+        <Scheduler />
       </div>
       {showUpgrade && (
         <UpgradeModal
