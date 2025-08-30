@@ -1,0 +1,3 @@
+@use './_variables.scss' as *;
+
+.actions { display: flex; gap: $space-sm; }

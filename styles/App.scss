@@ -1,0 +1,121 @@
+@use './_variables.scss' as *;
+
+* { box-sizing: border-box; }
+
+.wp-link-app {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 72vh;
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial, sans-serif;
+  background: var(--color-bg);
+}
+
+.content { padding: $space-lg; }
+
+.section + .section { margin-top: $space-lg; }
+
+.panel {
+  background: var(--color-bg-elev);
+  border: 1px solid var(--color-border);
+  border-radius: $radius;
+  box-shadow: var(--shadow);
+}
+
+.panel-header { padding: $space; border-bottom: 1px solid var(--color-border); }
+
+.panel-body { padding: $space; }
+
+.btn {
+  appearance: none;
+  border: 1px solid var(--color-border);
+  border-radius: $radius-sm;
+  background: transparent;
+  color: var(--color-text);
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: 120ms ease-in-out;
+}
+
+.btn:hover { transform: translateY(-1px); }
+
+.btn:disabled { opacity: 0.6; cursor: default; }
+
+.btn.primary {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 92%, white) 0%, var(--color-primary) 100%);
+  border-color: transparent;
+  color: #fff;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-bg-elev), transparent 94%);
+}
+
+.badge.ok { color: var(--color-success); border-color: color-mix(in srgb, var(--color-success), transparent 65%); }
+.badge.redirect { color: var(--color-warning); border-color: color-mix(in srgb, var(--color-warning), transparent 65%); }
+.badge.broken { color: var(--color-danger); border-color: color-mix(in srgb, var(--color-danger), transparent 65%); }
+.badge.type-internal { color: var(--color-accent); }
+.badge.type-external { color: var(--color-primary); }
+
+.switch { display: inline-flex; align-items: center; gap: 8px; }
+.switch input { accent-color: var(--color-primary); }
+
+.form-grid { display: grid; gap: $space; }
+.form-row { display: flex; flex-wrap: wrap; gap: $space; }
+
+// Améliore la lisibilité des textes
+.subtitle { color: var(--color-text); margin: 4px 0 0 0; opacity: 0.95; }
+p, label, th { color: var(--color-text); }
+// Forcer les titres à adopter la couleur du thème (et supplanter WP admin)
+.wp-link-app h1,
+.wp-link-app h2,
+.wp-link-app h3,
+.wp-link-app h4,
+.wp-link-app h5,
+.wp-link-app h6 {
+  color: var(--color-text);
+}
+.panel-header h3,
+.panel-header p { color: var(--color-text); }
+
+// Inputs – styles génériques
+input[type='text'], input[type='email'], input[type='number'], input[type='tel'], select, textarea {
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-sm;
+  padding: 10px 12px;
+}
+input::placeholder, textarea::placeholder { color: color-mix(in srgb, var(--color-text) 70%, transparent); }
+
+
+// Modale simple pour l'aperçu PDF
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  width: min(900px, 96vw);
+  max-height: 90vh;
+  overflow: auto;
+  background: var(--color-bg-elev);
+  border: 1px solid var(--color-border);
+  border-radius: $radius;
+  box-shadow: var(--shadow);
+}
+.modal .modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: $space;
+  border-bottom: 1px solid var(--color-border);
+}
+.modal .modal-body { padding: $space; }
+.modal .modal-actions { display: flex; gap: $space-sm; padding: $space; border-top: 1px solid var(--color-border); }

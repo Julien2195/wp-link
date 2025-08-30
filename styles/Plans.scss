@@ -1,0 +1,47 @@
+@use './_variables.scss' as *;
+
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $space;
+}
+
+@media (max-width: 900px) {
+  .plans-grid { grid-template-columns: 1fr; }
+}
+
+.plan-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: $radius;
+  background: var(--color-bg-elev);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.plan-card:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0,0,0,0.25); }
+
+.plan-card .head {
+  padding: $space;
+  border-bottom: 1px solid var(--color-border);
+}
+.plan-card .title { margin: 0; font-weight: 700; color: var(--color-text); }
+.plan-card .price { margin: 6px 0 0 0; font-size: 22px; color: var(--color-text); }
+.plan-card .features { padding: $space; }
+.plan-card .features li { margin-bottom: 8px; }
+.plan-card .cta { padding: $space; border-top: 1px solid var(--color-border); }
+
+.plan-card.pro {
+  border-color: color-mix(in srgb, var(--color-primary) 70%, var(--color-border));
+}
+.plan-card.pro::before {
+  content: '';
+  position: absolute; inset: 0 0 auto 0; height: 8px;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
+}
+.badge-reco {
+  display: inline-block; margin-left: 8px; padding: 4px 8px; border-radius: 999px; font-size: 12px;
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent); color: var(--color-text);
+}
+
+.plan-card .check { color: var(--color-success); margin-right: 6px; }
