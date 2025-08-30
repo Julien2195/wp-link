@@ -6,7 +6,11 @@ import StatsCards from './components/StatsCards.jsx';
 import ResultsTable from './components/ResultsTable.jsx';
 import History from './components/History.jsx';
 import Settings from './components/Settings.jsx';
-import Plans from './components/Plans.jsx';
+// Plans section removed; replaced by upgrade CTA button
+import UnlockButton from './components/UnlockButton.jsx';
+import UpgradeModal from './components/UpgradeModal.jsx';
+import PaymentModal from './components/PaymentModal.jsx';
+import { createEmbeddedCheckoutSession, createHostedCheckoutSession } from './api/endpoints.js';
 import ReportPreview from './components/ReportPreview.jsx';
 import { startScan as apiStartScan, getScan, getScanResults } from './api/endpoints.js';
 
@@ -14,7 +18,7 @@ export default function App() {
   const [links, setLinks] = useState([]);
   const [scanning, setScanning] = useState(false);
   const [currentScanId, setCurrentScanId] = useState(null);
-  const [route, setRoute] = useState('dashboard'); // dashboard | history | settings | plans
+  const [route, setRoute] = useState('dashboard'); // dashboard | history | settings
   const [filters, setFilters] = useState({
     search: '',
     type: 'all', // all | internal | external
@@ -117,6 +121,9 @@ export default function App() {
   }, [links, filters]);
 
   const [showReport, setShowReport] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [checkoutSecret, setCheckoutSecret] = useState(null);
 
   return (
     <div className={`wp-link-app theme-${effectiveTheme}`}>
@@ -132,6 +139,11 @@ export default function App() {
 
         {route === 'dashboard' && (
           <>
+            <div className="section">
+              <div className="unlock-cta">
+                <UnlockButton onClick={() => setShowUpgrade(true)} />
+              </div>
+            </div>
             <div className="section">
               <StatsCards stats={stats} />
             </div>
@@ -164,12 +176,62 @@ export default function App() {
           </div>
         )}
 
-        {route === 'plans' && (
-          <Plans />
+        {/* Plans section removed */}
+
+        {showUpgrade && (
+          <UpgradeModal
+            open={showUpgrade}
+            onClose={() => setShowUpgrade(false)}
+            onProceedPayment={async (plan) => {
+              const current = (typeof window !== 'undefined' && window.location) ? window.location.href.split('#')[0] : '';
+              const sep = current.includes('?') ? '&' : '?';
+              const returnUrl = current ? `${current}${sep}checkout_return=1&session_id={CHECKOUT_SESSION_ID}` : undefined;
+              const successUrl = current ? `${current}${sep}checkout_success=1&session_id={CHECKOUT_SESSION_ID}` : undefined;
+              const cancelUrl = current ? `${current}${sep}checkout_cancel=1` : undefined;
+              // 1) Try Embedded Checkout (preferred)
+              try {
+                const { clientSecret } = await createEmbeddedCheckoutSession({ plan: plan || 'pro', returnUrl });
+                if (clientSecret) {
+                  setCheckoutSecret(clientSecret);
+                  setShowUpgrade(false);
+                  setShowPayment(true);
+                  return;
+                }
+              } catch (e) {
+                console.warn('Embedded Checkout indisponible:', e?.message || e);
+              }
+              // 2) Fallback to Hosted Checkout created by backend
+              try {
+                const { url } = await createHostedCheckoutSession({ plan: plan || 'pro', successUrl, cancelUrl });
+                if (url) {
+                  setShowUpgrade(false);
+                  window.location.assign(url);
+                  return;
+                }
+              } catch (err) {
+                console.error('Hosted Checkout indisponible:', err);
+              }
+              // 3) No client-only fallback. Report error.
+              alert('Impossible de démarrer le paiement pour le moment.');
+            }}
+          />
+        )}
+
+        {showPayment && (
+          <PaymentModal
+            open={showPayment}
+            onClose={() => { setShowPayment(false); setCheckoutSecret(null); }}
+            checkoutClientSecret={checkoutSecret}
+          />
         )}
 
         {showReport && (
-          <ReportPreview stats={stats} items={filtered} onClose={() => setShowReport(false)} />
+          <ReportPreview 
+            stats={stats} 
+            items={filtered} 
+            scanId={currentScanId}
+            onClose={() => setShowReport(false)} 
+          />
         )}
       </main>
     </div>

@@ -49,7 +49,7 @@ export async function getScanResults(
 
 // Download a report (PDF)
 export async function downloadScanReport(id) {
-  return api.get(`/scans/${id}/report`, { responseType: 'blob' });
+  return api.get(`/scans/${id}/report`, { responseType: 'blob', headers: { Accept: 'application/pdf' } });
 }
 
 // Plans
@@ -70,6 +70,24 @@ export async function updateSubscription(plan) {
   const { data } = await api.post('/me/subscription', { plan });
   // { plan } or { plan: 'pro', checkoutUrl }
   return data;
+}
+
+// Billing — create an Embedded Checkout session (client_secret)
+export async function createEmbeddedCheckoutSession({ plan = 'pro', returnUrl } = {}) {
+  // Expected backend response: { clientSecret: '...' }
+  const payload = { plan, uiMode: 'embedded' };
+  if (returnUrl) payload.returnUrl = returnUrl;
+  const { data } = await api.post('/billing/checkout/session', payload);
+  return data;
+}
+
+// Billing — create a Hosted Checkout session (URL)
+export async function createHostedCheckoutSession({ plan = 'pro', successUrl, cancelUrl } = {}) {
+  const payload = { plan };
+  if (successUrl) payload.successUrl = successUrl;
+  if (cancelUrl) payload.cancelUrl = cancelUrl;
+  const { data } = await api.post('/billing/checkout/session/hosted', payload);
+  return data; // { url }
 }
 
 // Settings — scan defaults
