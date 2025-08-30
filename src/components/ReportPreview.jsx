@@ -1,7 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { downloadScanReport } from '../api/endpoints.js';
 
-export default function ReportPreview({ stats, items, onClose }) {
+export default function ReportPreview({ stats, items, onClose, scanId }) {
+  const [downloading, setDownloading] = useState(false);
   const time = new Date().toLocaleString();
+
+  const handleDownload = async () => {
+    if (!scanId || downloading) return;
+    try {
+      setDownloading(true);
+      const response = await downloadScanReport(scanId);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `scan-${scanId}-report.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Erreur lors du téléchargement du PDF:', e);
+      alert("Impossible de télécharger le PDF pour le moment.");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true">
@@ -61,10 +85,16 @@ export default function ReportPreview({ stats, items, onClose }) {
         </div>
         <div className="modal-actions">
           <button className="btn" onClick={onClose}>Fermer</button>
-          <button className="btn primary" disabled title="Fonctionnalité Pro (à implémenter)">Télécharger PDF</button>
+          <button 
+            className="btn primary" 
+            onClick={handleDownload}
+            disabled={!scanId || downloading}
+            title={!scanId ? 'Aucun scan en cours' : undefined}
+          >
+            {downloading ? 'Téléchargement…' : 'Télécharger PDF'}
+          </button>
         </div>
       </div>
     </div>
   );
 }
-
