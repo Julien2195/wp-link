@@ -72,6 +72,24 @@ export async function updateSubscription(plan) {
   return data;
 }
 
+// Billing — create an Embedded Checkout session (client_secret)
+export async function createEmbeddedCheckoutSession({ plan = 'pro', returnUrl } = {}) {
+  // Expected backend response: { clientSecret: '...' }
+  const payload = { plan, uiMode: 'embedded' };
+  if (returnUrl) payload.returnUrl = returnUrl;
+  const { data } = await api.post('/billing/checkout/session', payload);
+  return data;
+}
+
+// Billing — create a Hosted Checkout session (URL)
+export async function createHostedCheckoutSession({ plan = 'pro', successUrl, cancelUrl } = {}) {
+  const payload = { plan };
+  if (successUrl) payload.successUrl = successUrl;
+  if (cancelUrl) payload.cancelUrl = cancelUrl;
+  const { data } = await api.post('/billing/checkout/session/hosted', payload);
+  return data; // { url }
+}
+
 // Settings — scan defaults
 export async function getScanDefaults() {
   const { data } = await api.get('/settings/scan-defaults');
