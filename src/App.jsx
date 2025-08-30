@@ -9,6 +9,8 @@ import Settings from './components/Settings.jsx';
 // Plans section removed; replaced by upgrade CTA button
 import UnlockButton from './components/UnlockButton.jsx';
 import UpgradeModal from './components/UpgradeModal.jsx';
+import PaymentModal from './components/PaymentModal.jsx';
+import { createEmbeddedCheckoutSession, createHostedCheckoutSession } from './api/endpoints.js';
 import ReportPreview from './components/ReportPreview.jsx';
 import { startScan as apiStartScan, getScan, getScanResults } from './api/endpoints.js';
 
@@ -120,6 +122,8 @@ export default function App() {
 
   const [showReport, setShowReport] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [checkoutSecret, setCheckoutSecret] = useState(null);
 
   return (
     <div className={`wp-link-app theme-${effectiveTheme}`}>
@@ -178,8 +182,46 @@ export default function App() {
           <UpgradeModal
             open={showUpgrade}
             onClose={() => setShowUpgrade(false)}
-            // For now, only the button is implemented – no payment modal.
-            onProceedPayment={() => { /* Hook up payment step later */ }}
+            onProceedPayment={async (plan) => {
+              const current = (typeof window !== 'undefined' && window.location) ? window.location.href.split('#')[0] : '';
+              const sep = current.includes('?') ? '&' : '?';
+              const returnUrl = current ? `${current}${sep}checkout_return=1&session_id={CHECKOUT_SESSION_ID}` : undefined;
+              const successUrl = current ? `${current}${sep}checkout_success=1&session_id={CHECKOUT_SESSION_ID}` : undefined;
+              const cancelUrl = current ? `${current}${sep}checkout_cancel=1` : undefined;
+              // 1) Try Embedded Checkout (preferred)
+              try {
+                const { clientSecret } = await createEmbeddedCheckoutSession({ plan: plan || 'pro', returnUrl });
+                if (clientSecret) {
+                  setCheckoutSecret(clientSecret);
+                  setShowUpgrade(false);
+                  setShowPayment(true);
+                  return;
+                }
+              } catch (e) {
+                console.warn('Embedded Checkout indisponible:', e?.message || e);
+              }
+              // 2) Fallback to Hosted Checkout created by backend
+              try {
+                const { url } = await createHostedCheckoutSession({ plan: plan || 'pro', successUrl, cancelUrl });
+                if (url) {
+                  setShowUpgrade(false);
+                  window.location.assign(url);
+                  return;
+                }
+              } catch (err) {
+                console.error('Hosted Checkout indisponible:', err);
+              }
+              // 3) No client-only fallback. Report error.
+              alert('Impossible de démarrer le paiement pour le moment.');
+            }}
+          />
+        )}
+
+        {showPayment && (
+          <PaymentModal
+            open={showPayment}
+            onClose={() => { setShowPayment(false); setCheckoutSecret(null); }}
+            checkoutClientSecret={checkoutSecret}
           />
         )}
 
