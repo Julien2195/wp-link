@@ -49,7 +49,7 @@ export async function getScanResults(
 
 // Download a report (PDF)
 export async function downloadScanReport(id) {
-  return api.get(`/scans/${id}/report`, { responseType: 'blob' });
+  return api.get(`/scans/${id}/report`, { responseType: 'blob', headers: { Accept: 'application/pdf' } });
 }
 
 // Plans

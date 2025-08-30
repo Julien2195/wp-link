@@ -169,7 +169,12 @@ export default function App() {
         )}
 
         {showReport && (
-          <ReportPreview stats={stats} items={filtered} onClose={() => setShowReport(false)} />
+          <ReportPreview 
+            stats={stats} 
+            items={filtered} 
+            scanId={currentScanId}
+            onClose={() => setShowReport(false)} 
+          />
         )}
       </main>
     </div>

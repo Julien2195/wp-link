@@ -27,6 +27,7 @@ export default function History() {
     try {
       const results = await getScanResults(scan.id, { perPage: 1000 });
       setPreview({
+        scanId: scan.id,
         stats: {
           total: scan.total,
           ok: scan.ok,
@@ -113,6 +114,7 @@ export default function History() {
         <ReportPreview 
           stats={preview.stats} 
           items={preview.items} 
+          scanId={preview.scanId}
           onClose={() => setPreview(null)} 
         />
       )}
