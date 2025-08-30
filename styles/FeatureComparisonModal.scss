@@ -1,0 +1,237 @@
+.modal {
+  position: relative;
+  max-width: 900px;
+  padding: 0;
+  overflow: hidden;
+
+  &__header {
+    padding: 2rem 2rem 1.5rem;
+    text-align: center;
+  }
+
+  &__title {
+    font-size: 2rem;
+    font-weight: bold;
+  }
+
+  &__subtitle {
+    margin-top: .5rem;
+    font-size: 1.2rem;
+    color: var(--muted-foreground);
+  }
+
+  &__body {
+    padding: 0 2rem 2rem;
+  }
+}
+
+// Close button (top-right)
+.modal__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  padding: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.modal__close:hover {
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
+  color: var(--color-text);
+}
+
+.plans {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+.plan {
+  border: 1px solid #ddd;
+  border-radius: 1rem;
+  padding: 2rem;
+  position: relative;
+
+  &--pro {
+    /* Strong, visible border all around (black) */
+    border: 2px solid #000;
+    background: color-mix(in srgb, var(--primary) 6%, transparent);
+  }
+
+  &__badge {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%); /* overlap the top border */
+    z-index: 2;
+    padding: .35rem 1rem;
+    border-radius: .6rem;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 1px 2px rgba(0,0,0,.08);
+    /* Light theme default: white badge with dark text */
+    background: #fff;
+    color: #111827;
+  }
+
+  &__header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  &__title {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  &__price {
+    .plan__amount {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    .plan__period {
+      font-size: 1rem;
+      color: var(--muted-foreground);
+    }
+  }
+
+  &__features {
+    margin-top: 1.5rem;
+  }
+
+  &__footer {
+    margin-top: 1rem;
+  }
+}
+
+.feature {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+
+  &__icon {
+    color: var(--muted-foreground);
+
+    &--primary {
+      color: var(--primary);
+    }
+  }
+
+  &__name {
+    font-size: .9rem;
+    font-weight: 500;
+  }
+
+  &__status {
+    font-size: .85rem;
+    color: var(--muted-foreground);
+  }
+
+  &__included {
+    color: green;
+    display: flex;
+    gap: .3rem;
+    align-items: center;
+  }
+
+  &__excluded {
+    color: red;
+    display: flex;
+    gap: .3rem;
+    align-items: center;
+  }
+}
+
+.features-pro {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 1rem;
+  background: #f9f9f9;
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+
+  &__list {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .9rem;
+  }
+}
+
+.icon-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.icon-md {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.icon-check {
+  color: green;
+  width: 1rem;
+  height: 1rem;
+}
+
+.icon-x {
+  color: red;
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Dark theme overrides */
+.wp-link-app.theme-dark {
+  .plan--pro {
+    border-color: #000;
+    background: color-mix(in srgb, #000 4%, var(--color-bg-elev));
+  }
+  .plan__badge {
+    background: #000;
+    color: #fff;
+    border-color: rgba(255,255,255,.12);
+  }
+}
+
+.btn-primary {
+  width: 100%;
+  height: 3rem;
+  background: transparent; /* outline style, no shadow */
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+  border-radius: .5rem;
+  cursor: pointer;
+  &:hover {
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+  }
+}
+
+.btn-disabled {
+  width: 100%;
+  height: 3rem;
+  background: transparent;
+  border: 1px solid #ccc;
+  color: #999;
+}
+
+/* Map app theme variables to modal-specific CSS vars */
+.wp-link-app {
+  --primary: var(--color-primary);
+  --muted-foreground: color-mix(in srgb, var(--color-text) 65%, transparent);
+}

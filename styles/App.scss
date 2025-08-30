@@ -27,6 +27,17 @@
 
 .panel-body { padding: $space; }
 
+.unlock-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 60%, var(--color-border));
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  border-radius: $radius;
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
 .btn {
   appearance: none;
   border: 1px solid var(--color-border);
@@ -36,6 +47,11 @@
   padding: 10px 14px;
   cursor: pointer;
   transition: 120ms ease-in-out;
+}
+
+.btn.large {
+  font-size: 16px;
+  padding: 14px 18px;
 }
 
 .btn:hover { transform: translateY(-1px); }
@@ -99,7 +115,7 @@ input::placeholder, textarea::placeholder { color: color-mix(in srgb, var(--colo
 // Modale simple pour l'aperçu PDF
 .modal-backdrop {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.65);
   display: flex; align-items: center; justify-content: center;
   z-index: 1000;
 }
@@ -109,7 +125,7 @@ input::placeholder, textarea::placeholder { color: color-mix(in srgb, var(--colo
   overflow: auto;
   background: var(--color-bg-elev);
   border: 1px solid var(--color-border);
-  border-radius: $radius;
+  border-radius: 14px;
   box-shadow: var(--shadow);
 }
 .modal .modal-header {
@@ -119,3 +135,41 @@ input::placeholder, textarea::placeholder { color: color-mix(in srgb, var(--colo
 }
 .modal .modal-body { padding: $space; }
 .modal .modal-actions { display: flex; gap: $space-sm; padding: $space; border-top: 1px solid var(--color-border); }
+
+// Upgrade comparison grid
+.upgrade-compare {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 8px 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+.upgrade-compare .cell { text-align: left; }
+.upgrade-compare .head {
+  font-weight: 700;
+  color: var(--color-text);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+.upgrade-compare .label { color: var(--color-text); font-weight: 600; }
+.upgrade-compare .value { color: var(--color-text); }
+.upgrade-compare .cell { padding: 8px 0; }
+.upgrade-compare .free { text-align: center; }
+.upgrade-compare .pro { text-align: center; }
+
+// Emphasize Pro column
+.upgrade-compare .head.pro {
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 50%, var(--color-border));
+  border-radius: 8px;
+}
+.upgrade-compare .value.pro {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 40%, var(--color-border));
+  border-radius: 8px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.upgrade-compare .value.free {
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+}

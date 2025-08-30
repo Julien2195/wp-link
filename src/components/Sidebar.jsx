@@ -22,9 +22,6 @@ export default function Sidebar({ active = 'dashboard', onNavigate }) {
         <a className={`item ${active === 'history' ? 'active' : ''}`} href="#history" onClick={nav('history')}>
           Historique
         </a>
-        <a className={`item ${active === 'plans' ? 'active' : ''}`} href="#plans" onClick={nav('plans')}>
-          Offres
-        </a>
         <a className={`item ${active === 'settings' ? 'active' : ''}`} href="#settings" onClick={nav('settings')}>
           Paramètres
         </a>
