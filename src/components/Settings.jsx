@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
+import UnlockButton from './UnlockButton.jsx';
+import UpgradeModal from './UpgradeModal.jsx';
 
 export default function Settings({ theme, onChangeTheme }) {
+  const [showUpgrade, setShowUpgrade] = useState(false);
   return (
     <div className="panel">
       <div className="panel-header">
@@ -8,6 +11,9 @@ export default function Settings({ theme, onChangeTheme }) {
         <p>Personnalisez l’apparence et les préférences.</p>
       </div>
       <div className="panel-body">
+        <div className="unlock-cta" style={{ marginBottom: 16 }}>
+          <UnlockButton onClick={() => setShowUpgrade(true)} />
+        </div>
         <div className="form-grid">
           <div>
             <label>Thème</label>
@@ -43,7 +49,13 @@ export default function Settings({ theme, onChangeTheme }) {
           </div>
         </div>
       </div>
+      {showUpgrade && (
+        <UpgradeModal
+          open={showUpgrade}
+          onClose={() => setShowUpgrade(false)}
+          onProceedPayment={() => { /* Hook up payment step later */ }}
+        />
+      )}
     </div>
   );
 }
-

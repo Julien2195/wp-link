@@ -6,7 +6,9 @@ import StatsCards from './components/StatsCards.jsx';
 import ResultsTable from './components/ResultsTable.jsx';
 import History from './components/History.jsx';
 import Settings from './components/Settings.jsx';
-import Plans from './components/Plans.jsx';
+// Plans section removed; replaced by upgrade CTA button
+import UnlockButton from './components/UnlockButton.jsx';
+import UpgradeModal from './components/UpgradeModal.jsx';
 import ReportPreview from './components/ReportPreview.jsx';
 import { startScan as apiStartScan, getScan, getScanResults } from './api/endpoints.js';
 
@@ -14,7 +16,7 @@ export default function App() {
   const [links, setLinks] = useState([]);
   const [scanning, setScanning] = useState(false);
   const [currentScanId, setCurrentScanId] = useState(null);
-  const [route, setRoute] = useState('dashboard'); // dashboard | history | settings | plans
+  const [route, setRoute] = useState('dashboard'); // dashboard | history | settings
   const [filters, setFilters] = useState({
     search: '',
     type: 'all', // all | internal | external
@@ -117,6 +119,7 @@ export default function App() {
   }, [links, filters]);
 
   const [showReport, setShowReport] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   return (
     <div className={`wp-link-app theme-${effectiveTheme}`}>
@@ -132,6 +135,11 @@ export default function App() {
 
         {route === 'dashboard' && (
           <>
+            <div className="section">
+              <div className="unlock-cta">
+                <UnlockButton onClick={() => setShowUpgrade(true)} />
+              </div>
+            </div>
             <div className="section">
               <StatsCards stats={stats} />
             </div>
@@ -164,8 +172,15 @@ export default function App() {
           </div>
         )}
 
-        {route === 'plans' && (
-          <Plans />
+        {/* Plans section removed */}
+
+        {showUpgrade && (
+          <UpgradeModal
+            open={showUpgrade}
+            onClose={() => setShowUpgrade(false)}
+            // For now, only the button is implemented – no payment modal.
+            onProceedPayment={() => { /* Hook up payment step later */ }}
+          />
         )}
 
         {showReport && (
