@@ -30,7 +30,7 @@ export default function UpgradeModal({ open, onClose, onProceedPayment }) {
   return (
     <div
       ref={backdropRef}
-      className="modal-backdrop"
+      className="wp-link-modal-backdrop"
       aria-modal="true"
       role="dialog"
       aria-label="Débloquer toutes les fonctionnalités"

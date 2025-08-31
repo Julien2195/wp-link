@@ -52,6 +52,12 @@ export async function downloadScanReport(id) {
   return api.get(`/scans/${id}/report`, { responseType: 'blob', headers: { Accept: 'application/pdf' } });
 }
 
+// Clear all scans (dangerous)
+export async function clearScans() {
+  const { data } = await api.delete('/scans');
+  return data;
+}
+
 // Plans
 export async function getPlans() {
   const { data } = await api.get('/plans');
@@ -79,6 +85,109 @@ export async function createEmbeddedCheckoutSession({ plan = 'pro', returnUrl } 
   if (returnUrl) payload.returnUrl = returnUrl;
   const { data } = await api.post('/billing/checkout/session', payload);
   return data;
+}
+
+// ------------------------------------------------------------
+// Schedules (frontend-first with backend fallback)
+// ------------------------------------------------------------
+
+// Local fallback helpers
+function loadLocalSchedules() {
+  try {
+    const raw = localStorage.getItem('wpls.schedules');
+    return raw ? JSON.parse(raw) : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveLocalSchedules(items) {
+  try {
+    localStorage.setItem('wpls.schedules', JSON.stringify(items));
+  } catch (_) {
+    // ignore
+  }
+}
+
+function makeLocalId() {
+  return `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+async function tryRequest(promiseFactory, fallback) {
+  try {
+    const { data } = await promiseFactory();
+    return data;
+  } catch (err) {
+    // If backend not ready (404/501/Network), use fallback
+    if (!err.response || [404, 501].includes(err.response?.status)) {
+      return fallback();
+    }
+    throw err;
+  }
+}
+
+// List schedules
+export async function listSchedules() {
+  return tryRequest(
+    () => api.get('/schedules'),
+    () => ({ items: loadLocalSchedules() })
+  );
+}
+
+// Create schedule
+export async function createSchedule(payload) {
+  return tryRequest(
+    () => api.post('/schedules', payload),
+    () => {
+      const items = loadLocalSchedules();
+      const now = new Date().toISOString();
+      const item = { id: makeLocalId(), active: true, createdAt: now, ...payload };
+      items.push(item);
+      saveLocalSchedules(items);
+      return item;
+    }
+  );
+}
+
+// Update schedule
+export async function updateSchedule(id, payload) {
+  return tryRequest(
+    () => api.put(`/schedules/${id}`, payload),
+    () => {
+      const items = loadLocalSchedules();
+      const idx = items.findIndex((s) => s.id === id);
+      if (idx >= 0) {
+        items[idx] = { ...items[idx], ...payload };
+        saveLocalSchedules(items);
+        return items[idx];
+      }
+      throw new Error('Schedule not found');
+    }
+  );
+}
+
+// Delete schedule
+export async function deleteSchedule(id) {
+  return tryRequest(
+    () => api.delete(`/schedules/${id}`),
+    () => {
+      const items = loadLocalSchedules();
+      const next = items.filter((s) => s.id !== id);
+      saveLocalSchedules(next);
+      return { ok: true };
+    }
+  );
+}
+
+// Clear executed one-time schedules history
+export async function clearScheduleHistory() {
+  try {
+    const { data } = await api.delete('/schedules/history');
+    return data;
+  } catch (err) {
+    // No local fallback; history is only server-side meaningful
+    throw err;
+  }
 }
 
 // Billing — create a Hosted Checkout session (URL)

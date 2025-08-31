@@ -1,0 +1,496 @@
+@use './_variables.scss' as *;
+
+// Toggle global
+.scheduler-toggle {
+  padding: $space;
+  background: var(--color-bg-elev);
+  border: 1px solid var(--color-border);
+  border-radius: $radius;
+  margin-bottom: $space-lg;
+
+  .switch {
+    margin: 0;
+    font-weight: 600;
+  }
+}
+
+// Section de formulaire
+.scheduler-form-section {
+  margin-bottom: $space-lg;
+  
+  h4 {
+    margin: 0 0 $space 0;
+    color: var(--color-text);
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+.schedule-form {
+  display: grid;
+  gap: $space-lg;
+  padding: $space-lg;
+  background: var(--color-bg-elev);
+  border: 1px solid var(--color-border);
+  border-radius: $radius;
+}
+
+// Radio groups améliorés
+.radio-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space;
+}
+
+.radio-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: $space;
+  border: 2px solid var(--color-border);
+  border-radius: $radius;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--color-bg-elev);
+
+  &:hover {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 6%, var(--color-bg-elev));
+  }
+
+  input[type="radio"] {
+    margin-right: $space-sm;
+    accent-color: var(--color-primary);
+  }
+
+  input[type="radio"]:checked + .radio-content {
+    color: var(--color-primary);
+  }
+
+  &:has(input:checked) {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 12%, var(--color-bg-elev));
+  }
+}
+
+// Thème sombre: éclaircir encore les inputs et cartes radios
+.wp-link-app.theme-dark {
+  .datetime-input input,
+  .time-input input,
+  .number-input input {
+    background: color-mix(in srgb, #ffffff 14%, var(--color-bg-elev));
+    color: var(--color-text);
+  }
+
+  .radio-option {
+    background: color-mix(in srgb, #ffffff 10%, var(--color-bg-elev));
+  }
+}
+
+.radio-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  small {
+    font-size: 12px;
+    color: var(--color-muted);
+    opacity: 0.8;
+  }
+}
+
+// Configuration du formulaire
+.form-config {
+  display: grid;
+  gap: $space;
+}
+
+.form-row {
+  display: grid;
+  gap: $space-sm;
+
+  label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-text);
+  }
+}
+
+// Inputs améliorés
+.datetime-input, .time-input {
+  display: grid;
+  gap: $space-sm;
+
+  input {
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: $radius-sm;
+    background: #ffffff; // très clair pour indiquer l'interaction
+    color: #0b1220;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+    }
+  }
+
+  // Styles spécifiques pour Material-UI DateTimePicker
+  .MuiTextField-root {
+    width: 100%;
+    
+    .MuiInputBase-root {
+      background: var(--color-bg);
+      border-radius: $radius-sm;
+      border: 1px solid var(--color-border);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+      &:hover {
+        border-color: color-mix(in srgb, var(--color-primary) 60%, var(--color-border));
+      }
+
+      &.Mui-focused {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+      }
+
+      &::before, &::after {
+        display: none; // Supprimer les underlines par défaut
+      }
+
+      input {
+        padding: 10px 12px;
+        color: var(--color-text);
+        background: transparent;
+        border: none;
+        font-size: 14px;
+
+        &::placeholder {
+          color: var(--color-muted);
+          opacity: 0.7;
+        }
+      }
+    }
+
+    .MuiInputLabel-root {
+      display: none; // On utilise nos propres labels
+    }
+
+    // Icône du calendrier
+    .MuiInputAdornment-root {
+      .MuiIconButton-root {
+        color: var(--color-muted);
+        padding: 8px;
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: var(--color-primary);
+          background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+        }
+
+        svg {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+
+  // Personnalisation du popup du calendrier
+  .MuiPickersPopper-root {
+    .MuiPaper-root {
+      background: var(--color-bg-elev);
+      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow);
+      border-radius: $radius;
+
+      .MuiPickersCalendarHeader-root,
+      .MuiDateCalendar-root,
+      .MuiTimeClock-root {
+        background: var(--color-bg-elev);
+        color: var(--color-text);
+      }
+
+      .MuiPickersDay-root {
+        color: var(--color-text);
+
+        &.Mui-selected {
+          background: var(--color-primary);
+          color: white;
+        }
+
+        &:hover {
+          background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+        }
+      }
+
+      .MuiIconButton-root {
+        color: var(--color-text);
+
+        &:hover {
+          background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+        }
+      }
+
+      .MuiTypography-root {
+        color: var(--color-text);
+      }
+    }
+  }
+}
+
+.number-input {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+
+  input {
+    width: 80px;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: $radius-sm;
+    background: #ffffff; // très clair
+    color: #0b1220;
+    font-size: 14px;
+    text-align: center;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+    }
+  }
+
+  span {
+    font-weight: 500;
+    color: var(--color-text);
+  }
+}
+
+.recurring-config {
+  display: grid;
+  gap: $space;
+  padding: $space;
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-bg));
+  border-radius: $radius-sm;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+}
+
+.input-hint {
+  font-size: 12px;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+// Actions du formulaire
+.form-actions {
+  padding-top: $space;
+  border-top: 1px solid var(--color-border);
+
+  .btn {
+    padding: 12px 24px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+
+    &.primary {
+      background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, #000));
+      box-shadow: 0 2px 4px color-mix(in srgb, var(--color-primary) 30%, transparent);
+
+      &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px color-mix(in srgb, var(--color-primary) 40%, transparent);
+      }
+    }
+  }
+}
+
+// Listes de planifications
+.schedule-list {
+  margin-top: $space-lg;
+  
+  &.history {
+    margin-top: $space-lg;
+    padding-top: $space-lg;
+    border-top: 1px solid var(--color-border);
+  }
+}
+
+.list-title {
+  margin: 0 0 $space 0;
+  font-size: 16px;
+  color: var(--color-text);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+
+  .count {
+    font-size: 12px;
+    padding: 2px 6px;
+    background: var(--color-primary);
+    color: white;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+}
+
+// États vides et de chargement
+.empty-state, .loading-state {
+  text-align: center;
+  padding: $space-lg;
+  background: var(--color-bg-elev);
+  border: 1px dashed var(--color-border);
+  border-radius: $radius;
+  color: var(--color-muted);
+
+  p {
+    margin: 0 0 $space-sm 0;
+    font-weight: 500;
+  }
+
+  small {
+    font-size: 12px;
+    opacity: 0.8;
+  }
+}
+
+// Grille des planifications
+.schedule-grid {
+  display: grid;
+  gap: $space;
+}
+
+.schedule-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space;
+  padding: $space-lg;
+  border: 1px solid var(--color-border);
+  border-radius: $radius;
+  background: var(--color-bg-elev);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--color-primary) 50%, var(--color-border));
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--color-shadow) 15%, transparent);
+  }
+
+  &.history-item {
+    background: color-mix(in srgb, var(--color-success) 5%, var(--color-bg-elev));
+    border-color: color-mix(in srgb, var(--color-success) 20%, var(--color-border));
+  }
+}
+
+.schedule-content {
+  flex: 1;
+  display: grid;
+  gap: $space-sm;
+}
+
+.schedule-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.schedule-meta {
+  font-size: 12px;
+  
+  .status {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &.pending {
+      background: color-mix(in srgb, var(--color-warning) 20%, transparent);
+      color: var(--color-warning);
+    }
+
+    &.inactive {
+      background: color-mix(in srgb, var(--color-muted) 20%, transparent);
+      color: var(--color-muted);
+    }
+
+    &.completed {
+      background: color-mix(in srgb, var(--color-success) 20%, transparent);
+      color: var(--color-success);
+    }
+  }
+
+  .next-run {
+    color: var(--color-primary);
+    font-weight: 500;
+  }
+}
+
+.schedule-actions {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  flex-shrink: 0;
+
+  .switch.small {
+    font-size: 12px;
+    
+    span {
+      font-weight: 500;
+    }
+  }
+
+  .btn.small {
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+}
+
+// Alertes
+.alert.error {
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
+  padding: 12px 16px;
+  border-radius: $radius;
+  margin-bottom: $space-lg;
+  font-weight: 500;
+  
+  &::before {
+    content: "⚠️ ";
+    margin-right: $space-sm;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .radio-group {
+    grid-template-columns: 1fr;
+  }
+  
+  .schedule-item {
+    flex-direction: column;
+    align-items: stretch;
+    
+    .schedule-actions {
+      justify-content: space-between;
+      padding-top: $space;
+      border-top: 1px solid var(--color-border);
+    }
+  }
+}
+
+// Utilitaires
+.muted { color: var(--color-muted); }
+.success { color: var(--color-success); }

@@ -3,6 +3,7 @@ import UnlockButton from './UnlockButton.jsx';
 import UpgradeModal from './UpgradeModal.jsx';
 import PaymentModal from './PaymentModal.jsx';
 import { createEmbeddedCheckoutSession, createHostedCheckoutSession } from '../api/endpoints.js';
+import Scheduler from './Scheduler.jsx';
 
 export default function Settings({ theme, onChangeTheme }) {
   const [showUpgrade, setShowUpgrade] = useState(false);
@@ -52,6 +53,9 @@ export default function Settings({ theme, onChangeTheme }) {
             </div>
           </div>
         </div>
+      </div>
+      <div className="section" style={{ marginTop: 16 }}>
+        <Scheduler />
       </div>
       {showUpgrade && (
         <UpgradeModal
