@@ -64,6 +64,22 @@
   color: #fff;
 }
 
+.btn.danger {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-danger) 92%, white) 0%, var(--color-danger) 100%);
+  border-color: transparent;
+  color: #fff;
+}
+
+.btn.danger.outline {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--color-danger) 70%, var(--color-border));
+  color: var(--color-danger);
+}
+
+.btn.danger.outline:hover {
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+}
+
 .badge {
   display: inline-block;
   padding: 4px 8px;
@@ -84,7 +100,7 @@
 .switch input { accent-color: var(--color-primary); }
 
 .form-grid { display: grid; gap: $space; }
-.form-row { display: flex; flex-wrap: wrap; gap: $space; }
+.form-row { display: flex; flex-wrap: wrap; gap: $space; align-items: baseline; }
 
 // Améliore la lisibilité des textes
 .subtitle { color: var(--color-text); margin: 4px 0 0 0; opacity: 0.95; }
@@ -111,11 +127,11 @@ input[type='text'], input[type='email'], input[type='number'], input[type='tel']
 }
 input::placeholder, textarea::placeholder { color: color-mix(in srgb, var(--color-text) 70%, transparent); }
 
-
-// Modale simple pour l'aperçu PDF
+.wp-link-modal-backdrop,
 .modal-backdrop {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.65);
+background: rgba(0, 0, 0, 0.8);
+  opacity: 1; 
   display: flex; align-items: center; justify-content: center;
   z-index: 1000;
 }

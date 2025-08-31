@@ -23,6 +23,17 @@ export default function History() {
     }
   };
 
+  const onClearHistory = async () => {
+    if (!confirm('Voulez-vous vraiment vider tout l\'historique des scans ? Cette action est irréversible.')) return;
+    try {
+      await clearScans();
+      await loadScans();
+    } catch (e) {
+      console.error('Erreur lors du nettoyage de l\'historique:', e);
+      alert('Échec du nettoyage. Consultez les logs.');
+    }
+  };
+
   const openPreview = async (scan) => {
     try {
       const results = await getScanResults(scan.id, { perPage: 1000 });
@@ -60,9 +71,16 @@ export default function History() {
 
   return (
     <div className="panel">
-      <div className="panel-header">
-        <h3>Historique des scans</h3>
-        <p>Liste des derniers scans réalisés.</p>
+      <div className="panel-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div>
+          <h3>Historique des scans</h3>
+          <p>Liste des derniers scans réalisés.</p>
+        </div>
+        {scans.length > 0 && (
+          <button className="btn danger" onClick={onClearHistory}>
+            Vider l'historique
+          </button>
+        )}
       </div>
       <div className="panel-body">
         {scans.length === 0 ? (
