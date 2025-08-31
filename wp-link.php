@@ -89,6 +89,14 @@ if (!class_exists('WP_Link_Scanner')) {
                             wp_enqueue_style($handle . '-css-' . $i, $build_url . $css_file, [], null);
                         }
                     }
+
+                    // Expose WordPress context to the frontend (admin email, site url)
+                    $admin_email = get_bloginfo('admin_email');
+                    $site_url    = home_url();
+                    wp_localize_script($handle, 'WPLS_SETTINGS', [
+                        'adminEmail' => $admin_email,
+                        'siteUrl'    => $site_url,
+                    ]);
                 } else {
                     // Fallback basique si manifest présent mais entrée absente
                     $this->enqueue_basic_fallback($build_dir, $build_url);
@@ -109,6 +117,14 @@ if (!class_exists('WP_Link_Scanner')) {
                 // Convertit le chemin disque en URL relative au plugin
                 $first_js = basename($js_files[0]);
                 wp_enqueue_script('wp-link-scanner-app', $build_url . 'assets/' . $first_js, [], null, true);
+
+                // Expose WordPress context in fallback mode as well
+                $admin_email = get_bloginfo('admin_email');
+                $site_url    = home_url();
+                wp_localize_script('wp-link-scanner-app', 'WPLS_SETTINGS', [
+                    'adminEmail' => $admin_email,
+                    'siteUrl'    => $site_url,
+                ]);
             }
 
             if (!empty($css_files)) {

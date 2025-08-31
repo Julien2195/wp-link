@@ -28,7 +28,7 @@ export default function ReportPreview({ stats, items, onClose, scanId }) {
   };
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true">
+    <div className="wp-link-modal-backdrop" role="dialog" aria-modal="true">
       <div className="modal">
         <div className="modal-header">
           <h3 style={{ margin: 0 }}>Rapport d’analyse des liens</h3>
