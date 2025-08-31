@@ -127,9 +127,10 @@ input[type='text'], input[type='email'], input[type='number'], input[type='tel']
 }
 input::placeholder, textarea::placeholder { color: color-mix(in srgb, var(--color-text) 70%, transparent); }
 
-.wp-link-modal-backdrop {
+.wp-link-modal-backdrop,
+.modal-backdrop {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,1);
+background: rgba(0, 0, 0, 0.8);
   opacity: 1; 
   display: flex; align-items: center; justify-content: center;
   z-index: 1000;
