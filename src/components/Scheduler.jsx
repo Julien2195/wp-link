@@ -144,6 +144,16 @@ export default function Scheduler() {
     try { return localStorage.getItem('wpls.schedules.enabled') !== 'false'; } catch (_) { return true; }
   });
 
+  // Email settings (pre-filled from WP admin email; editable)
+  const defaultAdminEmail = (typeof window !== 'undefined' && window.WPLS_SETTINGS && window.WPLS_SETTINGS.adminEmail) ? window.WPLS_SETTINGS.adminEmail : '';
+
+  const [emailEnabled, setEmailEnabled] = useState(() => {
+    try { return localStorage.getItem('wpls.schedules.emailEnabled') !== 'false'; } catch (_) { return true; }
+  });
+  const [email, setEmail] = useState(() => {
+    try { return localStorage.getItem('wpls.schedules.email') || defaultAdminEmail; } catch (_) { return defaultAdminEmail; }
+  });
+
   // Détection du thème
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('wpls.theme');
@@ -213,6 +223,22 @@ export default function Scheduler() {
     try { localStorage.setItem('wpls.schedules.enabled', enabled ? 'true' : 'false'); } catch (_) {}
   }, [enabled]);
 
+  useEffect(() => {
+    try { localStorage.setItem('wpls.schedules.emailEnabled', emailEnabled ? 'true' : 'false'); } catch (_) {}
+  }, [emailEnabled]);
+
+  useEffect(() => {
+    try { localStorage.setItem('wpls.schedules.email', email || ''); } catch (_) {}
+  }, [email]);
+
+  // Prefill from WordPress admin email if empty on mount
+  useEffect(() => {
+    if (!email && defaultAdminEmail) {
+      setEmail(defaultAdminEmail);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const activeSchedules = useMemo(() => {
     return items.filter(s => s.active || (s.type === 'recurring'));
   }, [items]);
@@ -240,6 +266,9 @@ export default function Scheduler() {
           timezone,
           active: true,
           site,
+          // Email preferences (server will ignore for now; kept for future)
+          notify: !!emailEnabled,
+          notifyEmail: email || defaultAdminEmail,
         };
         const created = await createSchedule(payload);
         setItems((prev) => [...prev, created]);
@@ -253,6 +282,8 @@ export default function Scheduler() {
           timezone,
           active: true,
           site,
+          notify: !!emailEnabled,
+          notifyEmail: email || defaultAdminEmail,
         };
         const created = await createSchedule(payload);
         setItems((prev) => [...prev, created]);
@@ -304,6 +335,29 @@ export default function Scheduler() {
         <div className="scheduler-form-section">
           <h4>Créer une nouvelle planification</h4>
           <form className="schedule-form" onSubmit={onAdd}>
+            {/* Envoi e-mail optionnel */}
+            <div className="form-row">
+              <label>Recevoir le rapport par e‑mail</label>
+              <label className="switch">
+                <input type="checkbox" checked={emailEnabled} onChange={(e) => setEmailEnabled(e.target.checked)} />
+                <span>Activer l’envoi du PDF par e‑mail</span>
+              </label>
+            </div>
+
+            {emailEnabled && (
+              <div className="form-row">
+                <label>Adresse e‑mail</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={defaultAdminEmail || 'email@exemple.com'}
+                  required={emailEnabled}
+                  style={{ maxWidth: 360 }}
+                />
+                <span className="input-hint">Pré-rempli avec l’e‑mail admin WordPress (modifiable).</span>
+              </div>
+            )}
             {/* Type de planification */}
             <div className="form-row radio-group">
               <label className="radio-option">
@@ -344,6 +398,7 @@ export default function Scheduler() {
                           value={runAt}
                           onChange={(val) => setRunAt(val)}
                           minDateTime={dayjs()}
+                          timeSteps={{ minutes: 1 }}
                           slotProps={{
                             textField: { 
                               fullWidth: true, 

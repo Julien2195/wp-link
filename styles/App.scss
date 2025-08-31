@@ -130,9 +130,10 @@ input::placeholder, textarea::placeholder { color: color-mix(in srgb, var(--colo
 
 
 // Modale simple pour l'aperçu PDF
-.modal-backdrop {
+.wp-link-modal-backdrop {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.65);
+  background: rgba(0,0,0,1);
+  opacity: 1; /* avoid Bootstrap or theme opacity overrides */
   display: flex; align-items: center; justify-content: center;
   z-index: 1000;
 }

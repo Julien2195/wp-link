@@ -51,18 +51,15 @@ export default function App() {
         includeWidgets: true
       });
       
-      console.log('Scan démarré:', scanData);
       setCurrentScanId(scanData.id);
       
       // Polling pour récupérer les résultats
       const pollResults = async () => {
         try {
           const scanStatus = await getScan(scanData.id);
-          console.log('Status du scan:', scanStatus);
           
           // Récupérer les liens scannés
           const results = await getScanResults(scanData.id, { perPage: 1000 });
-          console.log('Résultats du scan:', results);
           setLinks(results.items || []);
           
           // Si le scan n'est pas terminé, continuer le polling
