@@ -32,6 +32,20 @@ api.interceptors.request.use((config) => {
   if (wpNonce) {
     config.headers = { ...config.headers, 'X-WP-Nonce': wpNonce };
   }
+
+    // Ajouter les informations du site WordPress pour identifier l'utilisateur
+    if (typeof window !== 'undefined' && window.WPLS_SETTINGS) {
+        const { adminEmail, siteUrl } = window.WPLS_SETTINGS;
+        if (adminEmail) {
+            config.headers = { ...config.headers, 'X-WP-User-Email': adminEmail };
+        }
+        if (siteUrl) {
+            config.headers = { ...config.headers, 'X-WP-Site-URL': siteUrl };
+        }
+    } else {
+        console.error('WPLS_SETTINGS not found:', window.WPLS_SETTINGS);
+    }
+
   return config;
 });
 

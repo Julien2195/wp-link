@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useSubscription } from '../hooks/useSubscription.js';
 import ReportPreview from './ReportPreview.jsx';
-import { listScans, getScanResults } from '../api/endpoints.js';
+import { listScans, getScanResults, clearScans } from '../api/endpoints.js';
 
-export default function History() {
+export default function History({ onUpgrade }) {
   const [scans, setScans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState(null);
+  const { canAccessFeature, isFree, isPro, subscription } = useSubscription();
 
   useEffect(() => {
     loadScans();
@@ -24,12 +26,17 @@ export default function History() {
   };
 
   const onClearHistory = async () => {
-    if (!confirm('Voulez-vous vraiment vider tout l\'historique des scans ? Cette action est irréversible.')) return;
+    if (
+      !confirm(
+        "Voulez-vous vraiment vider tout l'historique des scans ? Cette action est irréversible.",
+      )
+    )
+      return;
     try {
       await clearScans();
       await loadScans();
     } catch (e) {
-      console.error('Erreur lors du nettoyage de l\'historique:', e);
+      console.error("Erreur lors du nettoyage de l'historique:", e);
       alert('Échec du nettoyage. Consultez les logs.');
     }
   };
@@ -45,7 +52,7 @@ export default function History() {
           broken: scan.broken,
           redirect: scan.redirect,
           internal: 0, // Ces données ne sont pas disponibles dans la liste
-          external: 0
+          external: 0,
         },
         items: results.items || [],
       });
@@ -71,7 +78,10 @@ export default function History() {
 
   return (
     <div className="panel">
-      <div className="panel-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+      <div
+        className="panel-header"
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}
+      >
         <div>
           <h3>Historique des scans</h3>
           <p>Liste des derniers scans réalisés.</p>
@@ -83,9 +93,24 @@ export default function History() {
         )}
       </div>
       <div className="panel-body">
-        {scans.length === 0 ? (
+        {/* Restriction pour les utilisateurs gratuits */}
+        {isFree && !canAccessFeature('scan_history') && (
+          <div className="feature-locked">
+            <div className="lock-icon">🔒</div>
+            <h4>Fonctionnalité Pro</h4>
+            <p>L'historique des scans est disponible uniquement avec le plan Pro.</p>
+            <button className="btn primary" onClick={onUpgrade}>
+              Passer au plan Pro
+            </button>
+          </div>
+        )}
+
+        {/* Contenu normal pour les utilisateurs Pro ou si la fonctionnalité est accessible */}
+        {(!isFree || canAccessFeature('scan_history')) && scans.length === 0 && (
           <p>Aucun scan trouvé. Lancez votre premier scan depuis le dashboard.</p>
-        ) : (
+        )}
+
+        {(!isFree || canAccessFeature('scan_history')) && scans.length > 0 && (
           <div className="table-wrap">
             <table className="results-table">
               <thead>
@@ -104,17 +129,15 @@ export default function History() {
                   <tr key={scan.id}>
                     <td>{formatDate(scan.startedAt || scan.createdAt)}</td>
                     <td>
-                      <span className={`status-badge ${scan.status}`}>
-                        {scan.status}
-                      </span>
+                      <span className={`status-badge ${scan.status}`}>{scan.status}</span>
                     </td>
                     <td>{scan.total}</td>
                     <td>{scan.ok}</td>
                     <td>{scan.redirect}</td>
                     <td>{scan.broken}</td>
                     <td>
-                      <button 
-                        className="btn" 
+                      <button
+                        className="btn"
                         onClick={() => openPreview(scan)}
                         disabled={scan.status === 'running' || scan.status === 'pending'}
                       >
@@ -129,11 +152,11 @@ export default function History() {
         )}
       </div>
       {preview && (
-        <ReportPreview 
-          stats={preview.stats} 
-          items={preview.items} 
+        <ReportPreview
+          stats={preview.stats}
+          items={preview.items}
           scanId={preview.scanId}
-          onClose={() => setPreview(null)} 
+          onClose={() => setPreview(null)}
         />
       )}
     </div>
