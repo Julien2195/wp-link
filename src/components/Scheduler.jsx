@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSubscription } from '../hooks/useSubscription.js';
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -74,7 +75,9 @@ const createAppTheme = (isDark = false) => {
   });
 };
 
-function pad(n) { return String(n).padStart(2, '0'); }
+function pad(n) {
+  return String(n).padStart(2, '0');
+}
 
 function toLocalDateTimeValue(iso) {
   if (!iso) return '';
@@ -108,50 +111,87 @@ function computeNextRun(s) {
   try {
     const now = new Date();
     if (!s.active) return null;
-    
+
     if (s.type === 'one_time') {
       const d = new Date(s.runAt);
       return d > now ? d : null;
     }
-    
+
     if (s.type === 'recurring') {
       const [hh, mm] = (s.time || '00:00').split(':').map((x) => parseInt(x, 10));
-      
+
       // Utiliser lastRunAt comme anchor si disponible, sinon createdAt
       const anchor = s.lastRunAt ? new Date(s.lastRunAt) : new Date(s.createdAt);
-      
+
       // Calculer le prochain run basé sur l'anchor + everyDays
       let candidate = new Date(anchor);
       candidate.setHours(hh, mm || 0, 0, 0);
-      
+
       // Si le candidat est dans le passé, ajouter everyDays jusqu'à ce qu'il soit dans le futur
       const stepMs = (s.everyDays || 1) * 24 * 3600 * 1000;
       while (candidate <= now) {
         candidate = new Date(candidate.getTime() + stepMs);
       }
-      
+
       return candidate;
     }
   } catch (_) {}
   return null;
 }
 
-export default function Scheduler() {
+export default function Scheduler({ onUpgrade }) {
+  const { canAccessFeature, isFree, isPro, subscription } = useSubscription();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [enabled, setEnabled] = useState(() => {
-    try { return localStorage.getItem('wpls.schedules.enabled') !== 'false'; } catch (_) { return true; }
+    try {
+      return localStorage.getItem('wpls.schedules.enabled') !== 'false';
+    } catch (_) {
+      return true;
+    }
   });
+
+  // Bloquer l'accès à la planification pour les utilisateurs gratuits
+  if (isFree && !canAccessFeature('scheduling')) {
+    return (
+      <div className="panel">
+        <div className="panel-header">
+          <h3>Programmation de scans</h3>
+        </div>
+        <div className="panel-body">
+          <div className="feature-locked">
+            <div className="lock-icon">🔒</div>
+            <h4>Fonctionnalité Pro</h4>
+            <p>La programmation automatique de scans est disponible uniquement avec le plan Pro.</p>
+            <button className="btn primary" onClick={onUpgrade}>
+              Passer au plan Pro
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Email settings (pre-filled from WP admin email; editable)
-  const defaultAdminEmail = (typeof window !== 'undefined' && window.WPLS_SETTINGS && window.WPLS_SETTINGS.adminEmail) ? window.WPLS_SETTINGS.adminEmail : '';
+  const defaultAdminEmail =
+    typeof window !== 'undefined' && window.WPLS_SETTINGS && window.WPLS_SETTINGS.adminEmail
+      ? window.WPLS_SETTINGS.adminEmail
+      : '';
 
   const [emailEnabled, setEmailEnabled] = useState(() => {
-    try { return localStorage.getItem('wpls.schedules.emailEnabled') !== 'false'; } catch (_) { return true; }
+    try {
+      return localStorage.getItem('wpls.schedules.emailEnabled') !== 'false';
+    } catch (_) {
+      return true;
+    }
   });
   const [email, setEmail] = useState(() => {
-    try { return localStorage.getItem('wpls.schedules.email') || defaultAdminEmail; } catch (_) { return defaultAdminEmail; }
+    try {
+      return localStorage.getItem('wpls.schedules.email') || defaultAdminEmail;
+    } catch (_) {
+      return defaultAdminEmail;
+    }
   });
 
   // Détection du thème
@@ -169,12 +209,15 @@ export default function Scheduler() {
       const savedTheme = localStorage.getItem('wpls.theme');
       if (savedTheme === 'dark') setIsDarkMode(true);
       else if (savedTheme === 'light') setIsDarkMode(false);
-      else setIsDarkMode(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      else
+        setIsDarkMode(
+          window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
+        );
     };
 
     // Écouter les changements de localStorage
     window.addEventListener('storage', handleThemeChange);
-    
+
     // Écouter les changements de préférence système
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     mediaQuery.addEventListener('change', handleThemeChange);
@@ -220,15 +263,21 @@ export default function Scheduler() {
   }, []);
 
   useEffect(() => {
-    try { localStorage.setItem('wpls.schedules.enabled', enabled ? 'true' : 'false'); } catch (_) {}
+    try {
+      localStorage.setItem('wpls.schedules.enabled', enabled ? 'true' : 'false');
+    } catch (_) {}
   }, [enabled]);
 
   useEffect(() => {
-    try { localStorage.setItem('wpls.schedules.emailEnabled', emailEnabled ? 'true' : 'false'); } catch (_) {}
+    try {
+      localStorage.setItem('wpls.schedules.emailEnabled', emailEnabled ? 'true' : 'false');
+    } catch (_) {}
   }, [emailEnabled]);
 
   useEffect(() => {
-    try { localStorage.setItem('wpls.schedules.email', email || ''); } catch (_) {}
+    try {
+      localStorage.setItem('wpls.schedules.email', email || '');
+    } catch (_) {}
   }, [email]);
 
   // Prefill from WordPress admin email if empty on mount
@@ -240,11 +289,11 @@ export default function Scheduler() {
   }, []);
 
   const activeSchedules = useMemo(() => {
-    return items.filter(s => s.active || (s.type === 'recurring'));
+    return items.filter((s) => s.active || s.type === 'recurring');
   }, [items]);
 
   const historySchedules = useMemo(() => {
-    return items.filter(s => s.type === 'one_time' && !s.active && s.lastRunAt);
+    return items.filter((s) => s.type === 'one_time' && !s.active && s.lastRunAt);
   }, [items]);
 
   const nextRuns = useMemo(() => {
@@ -257,7 +306,10 @@ export default function Scheduler() {
     e?.preventDefault?.();
     setError(null);
     try {
-      const site = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
+      const site =
+        typeof window !== 'undefined' && window.location && window.location.origin
+          ? window.location.origin
+          : '';
       if (type === 'one_time') {
         if (!runAt) throw new Error('Veuillez choisir une date/heure');
         const payload = {
@@ -320,11 +372,15 @@ export default function Scheduler() {
       </div>
       <div className="panel-body">
         {error && <div className="alert error">{error}</div>}
-        
+
         {/* Toggle global */}
         <div className="scheduler-toggle">
           <label className="switch">
-            <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={enabled}
+              onChange={(e) => setEnabled(e.target.checked)}
+            />
             <span>Activer la planification automatique</span>
           </label>
         </div>
@@ -339,7 +395,11 @@ export default function Scheduler() {
             <div className="form-row">
               <label>Recevoir le rapport par e‑mail</label>
               <label className="switch">
-                <input type="checkbox" checked={emailEnabled} onChange={(e) => setEmailEnabled(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={emailEnabled}
+                  onChange={(e) => setEmailEnabled(e.target.checked)}
+                />
                 <span>Activer l’envoi du PDF par e‑mail</span>
               </label>
             </div>
@@ -355,17 +415,19 @@ export default function Scheduler() {
                   required={emailEnabled}
                   style={{ maxWidth: 360 }}
                 />
-                <span className="input-hint">Pré-rempli avec l’e‑mail admin WordPress (modifiable).</span>
+                <span className="input-hint">
+                  Pré-rempli avec l’e‑mail admin WordPress (modifiable).
+                </span>
               </div>
             )}
             {/* Type de planification */}
             <div className="form-row radio-group">
               <label className="radio-option">
-                <input 
-                  type="radio" 
-                  name="s-type" 
-                  checked={type === 'one_time'} 
-                  onChange={() => setType('one_time')} 
+                <input
+                  type="radio"
+                  name="s-type"
+                  checked={type === 'one_time'}
+                  onChange={() => setType('one_time')}
                 />
                 <span className="radio-content">
                   <strong>Une seule fois</strong>
@@ -373,11 +435,11 @@ export default function Scheduler() {
                 </span>
               </label>
               <label className="radio-option">
-                <input 
-                  type="radio" 
-                  name="s-type" 
-                  checked={type === 'recurring'} 
-                  onChange={() => setType('recurring')} 
+                <input
+                  type="radio"
+                  name="s-type"
+                  checked={type === 'recurring'}
+                  onChange={() => setType('recurring')}
                 />
                 <span className="radio-content">
                   <strong>Récurrent</strong>
@@ -400,10 +462,10 @@ export default function Scheduler() {
                           minDateTime={dayjs()}
                           timeSteps={{ minutes: 1 }}
                           slotProps={{
-                            textField: { 
-                              fullWidth: true, 
+                            textField: {
+                              fullWidth: true,
                               size: 'small',
-                              variant: 'outlined'
+                              variant: 'outlined',
                             },
                           }}
                         />
@@ -417,12 +479,12 @@ export default function Scheduler() {
                   <div className="form-row">
                     <label>Répéter tous les</label>
                     <div className="number-input">
-                      <input 
-                        type="number" 
-                        min={1} 
+                      <input
+                        type="number"
+                        min={1}
                         max={365}
-                        value={everyDays} 
-                        onChange={(e) => setEveryDays(e.target.value)} 
+                        value={everyDays}
+                        onChange={(e) => setEveryDays(e.target.value)}
                       />
                       <span>jours</span>
                     </div>
@@ -430,11 +492,7 @@ export default function Scheduler() {
                   <div className="form-row">
                     <label>Heure d'exécution</label>
                     <div className="time-input">
-                      <input 
-                        type="time" 
-                        value={time} 
-                        onChange={(e) => setTime(e.target.value)} 
-                      />
+                      <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
                       <span className="input-hint">Fuseau horaire: {timezone}</span>
                     </div>
                   </div>
@@ -454,7 +512,9 @@ export default function Scheduler() {
         <div className="schedule-list">
           <h4 className="list-title">
             Planifications actives
-            {activeSchedules.length > 0 && <span className="count">({activeSchedules.length})</span>}
+            {activeSchedules.length > 0 && (
+              <span className="count">({activeSchedules.length})</span>
+            )}
           </h4>
           {loading ? (
             <div className="loading-state">Chargement…</div>
@@ -472,7 +532,9 @@ export default function Scheduler() {
                     <div className="schedule-meta">
                       {s.active ? (
                         nextRuns[s.id] ? (
-                          <span className="next-run">Prochaine exécution: {nextRuns[s.id].toLocaleString()}</span>
+                          <span className="next-run">
+                            Prochaine exécution: {nextRuns[s.id].toLocaleString()}
+                          </span>
                         ) : (
                           <span className="status pending">En attente/échue</span>
                         )
@@ -483,7 +545,11 @@ export default function Scheduler() {
                   </div>
                   <div className="schedule-actions">
                     <label className="switch small">
-                      <input type="checkbox" checked={!!s.active} onChange={() => onToggleActive(s)} />
+                      <input
+                        type="checkbox"
+                        checked={!!s.active}
+                        onChange={() => onToggleActive(s)}
+                      />
                       <span>Active</span>
                     </label>
                     <button className="btn danger outline small" onClick={() => onDelete(s)}>
@@ -499,7 +565,15 @@ export default function Scheduler() {
         {/* Historique */}
         {historySchedules.length > 0 && (
           <div className="schedule-list history">
-            <div className="list-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <div
+              className="list-title"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+              }}
+            >
               <div>
                 Historique des exécutions <span className="count">({historySchedules.length})</span>
               </div>

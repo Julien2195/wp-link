@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSubscription } from './hooks/useSubscription.js';
 import Sidebar from './components/Sidebar.jsx';
 import Header from './components/Header.jsx';
 import ScanForm from './components/ScanForm.jsx';
@@ -6,7 +7,7 @@ import StatsCards from './components/StatsCards.jsx';
 import ResultsTable from './components/ResultsTable.jsx';
 import History from './components/History.jsx';
 import Settings from './components/Settings.jsx';
-// Plans section removed; replaced by upgrade CTA button
+import Scheduler from './components/Scheduler.jsx';
 import UnlockButton from './components/UnlockButton.jsx';
 import UpgradeModal from './components/UpgradeModal.jsx';
 import PaymentModal from './components/PaymentModal.jsx';
@@ -15,10 +16,11 @@ import ReportPreview from './components/ReportPreview.jsx';
 import { startScan as apiStartScan, getScan, getScanResults } from './api/endpoints.js';
 
 export default function App() {
+  const { refresh: refreshSubscription, isPro, isFree, subscription } = useSubscription();
   const [links, setLinks] = useState([]);
   const [scanning, setScanning] = useState(false);
   const [currentScanId, setCurrentScanId] = useState(null);
-  const [route, setRoute] = useState('dashboard'); // dashboard | history | settings
+  const [route, setRoute] = useState('dashboard'); // dashboard | history | settings | scheduler
   const [filters, setFilters] = useState({
     search: '',
     type: 'all', // all | internal | external
@@ -28,7 +30,10 @@ export default function App() {
   });
 
   // Theme management: system | light | dark
-  const getSystemTheme = () => (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const getSystemTheme = () =>
+    window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light';
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('wpls.theme');
     return saved || 'system';
@@ -44,29 +49,29 @@ export default function App() {
     if (scanning) return;
     setScanning(true);
     setLinks([]);
-    
+
     try {
       // Démarrer le scan via l'API
       const scanData = await apiStartScan({
-        site: (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : undefined,
+        site:
+          typeof window !== 'undefined' && window.location && window.location.origin
+            ? window.location.origin
+            : undefined,
         includeMenus: true,
-        includeWidgets: true
+        includeWidgets: true,
       });
-      
-      console.log('Scan démarré:', scanData);
+
       setCurrentScanId(scanData.id);
-      
+
       // Polling pour récupérer les résultats
       const pollResults = async () => {
         try {
           const scanStatus = await getScan(scanData.id);
-          console.log('Status du scan:', scanStatus);
-          
+
           // Récupérer les liens scannés
           const results = await getScanResults(scanData.id, { perPage: 1000 });
-          console.log('Résultats du scan:', results);
           setLinks(results.items || []);
-          
+
           // Si le scan n'est pas terminé, continuer le polling
           if (scanStatus.status === 'running' || scanStatus.status === 'pending') {
             setTimeout(pollResults, 2000); // Vérifier toutes les 2 secondes
@@ -78,18 +83,16 @@ export default function App() {
           setScanning(false);
         }
       };
-      
+
       // Démarrer le polling après 1 seconde
       setTimeout(pollResults, 1000);
-      
     } catch (error) {
       console.error('Erreur lors du démarrage du scan:', error);
       setScanning(false);
     }
   };
 
-  const onUpdateFilters = (partial) =>
-    setFilters((prev) => ({ ...prev, ...partial }));
+  const onUpdateFilters = (partial) => setFilters((prev) => ({ ...prev, ...partial }));
 
   const stats = useMemo(() => {
     const total = links.length;
@@ -139,20 +142,31 @@ export default function App() {
 
         {route === 'dashboard' && (
           <>
+            {/* Affichage du statut d'abonnement */}
             <div className="section">
-              <div className="unlock-cta">
-                <UnlockButton onClick={() => setShowUpgrade(true)} />
-              </div>
+              {/* Bouton upgrade seulement si version gratuite */}
+              {isFree && (
+                <div className="unlock-cta">
+                  <UnlockButton onClick={() => setShowUpgrade(true)} />
+                </div>
+              )}
             </div>
             <div className="section">
               <StatsCards stats={stats} />
             </div>
             <div className="section">
-              <ScanForm onScan={startScan} scanning={scanning} onChange={onUpdateFilters} />
+              <ScanForm
+                onScan={startScan}
+                scanning={scanning}
+                onChange={onUpdateFilters}
+                onUpgrade={() => setShowUpgrade(true)}
+              />
             </div>
             <div className="section">
               <div className="actions" style={{ marginBottom: 12 }}>
-                <button className="btn" onClick={() => setShowReport(true)}>Générer un PDF (aperçu)</button>
+                <button className="btn" onClick={() => setShowReport(true)}>
+                  Générer un PDF (aperçu)
+                </button>
               </div>
               <ResultsTable
                 items={filtered}
@@ -166,7 +180,13 @@ export default function App() {
 
         {route === 'history' && (
           <div className="section">
-            <History />
+            <History onUpgrade={() => setShowUpgrade(true)} />
+          </div>
+        )}
+
+        {route === 'scheduler' && (
+          <div className="section">
+            <Scheduler onUpgrade={() => setShowUpgrade(true)} />
           </div>
         )}
 
@@ -183,33 +203,49 @@ export default function App() {
             open={showUpgrade}
             onClose={() => setShowUpgrade(false)}
             onProceedPayment={async (plan) => {
-              const current = (typeof window !== 'undefined' && window.location) ? window.location.href.split('#')[0] : '';
+              const current =
+                typeof window !== 'undefined' && window.location
+                  ? window.location.href.split('#')[0]
+                  : '';
               const sep = current.includes('?') ? '&' : '?';
-              const returnUrl = current ? `${current}${sep}checkout_return=1&session_id={CHECKOUT_SESSION_ID}` : undefined;
-              const successUrl = current ? `${current}${sep}checkout_success=1&session_id={CHECKOUT_SESSION_ID}` : undefined;
+              const returnUrl = current
+                ? `${current}${sep}checkout_return=1&session_id={CHECKOUT_SESSION_ID}`
+                : undefined;
+              const successUrl = current
+                ? `${current}${sep}checkout_success=1&session_id={CHECKOUT_SESSION_ID}`
+                : undefined;
               const cancelUrl = current ? `${current}${sep}checkout_cancel=1` : undefined;
               // 1) Try Embedded Checkout (preferred)
               try {
-                const { clientSecret } = await createEmbeddedCheckoutSession({ plan: plan || 'pro', returnUrl });
+                const { clientSecret } = await createEmbeddedCheckoutSession({
+                  plan: plan || 'pro',
+                  returnUrl,
+                });
                 if (clientSecret) {
                   setCheckoutSecret(clientSecret);
                   setShowUpgrade(false);
                   setShowPayment(true);
+                  // Rafraîchir l'abonnement après le paiement
+                  setTimeout(() => refreshSubscription(), 2000);
                   return;
                 }
               } catch (e) {
-                console.warn('Embedded Checkout indisponible:', e?.message || e);
+                console.error('Embedded Checkout indisponible:', e?.message || e, e);
               }
               // 2) Fallback to Hosted Checkout created by backend
               try {
-                const { url } = await createHostedCheckoutSession({ plan: plan || 'pro', successUrl, cancelUrl });
+                const { url } = await createHostedCheckoutSession({
+                  plan: plan || 'pro',
+                  successUrl,
+                  cancelUrl,
+                });
                 if (url) {
                   setShowUpgrade(false);
                   window.location.assign(url);
                   return;
                 }
               } catch (err) {
-                console.error('Hosted Checkout indisponible:', err);
+                console.error('Hosted Checkout indisponible:', err?.message || err, err);
               }
               // 3) No client-only fallback. Report error.
               alert('Impossible de démarrer le paiement pour le moment.');
@@ -220,17 +256,20 @@ export default function App() {
         {showPayment && (
           <PaymentModal
             open={showPayment}
-            onClose={() => { setShowPayment(false); setCheckoutSecret(null); }}
+            onClose={() => {
+              setShowPayment(false);
+              setCheckoutSecret(null);
+            }}
             checkoutClientSecret={checkoutSecret}
           />
         )}
 
         {showReport && (
-          <ReportPreview 
-            stats={stats} 
-            items={filtered} 
+          <ReportPreview
+            stats={stats}
+            items={filtered}
             scanId={currentScanId}
-            onClose={() => setShowReport(false)} 
+            onClose={() => setShowReport(false)}
           />
         )}
       </main>
