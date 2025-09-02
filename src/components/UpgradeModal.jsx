@@ -21,10 +21,11 @@ export default function UpgradeModal({ open, onClose, onProceedPayment }) {
   if (!open) return null;
 
   const features = [
-    { name: "Scans de liens", free: "3 scans/mois", pro: "Illimités", icon: "⚡" },
-    { name: "Rapports détaillés", free: false, pro: "Avancés + PDF", icon: "📄" },
-    { name: "Programmation de scans", free: false, pro: true, icon: "📅" },
-    { name: "Envoi par email", free: false, pro: true, icon: "✉️" },
+    { name: 'Scans de liens', free: '10 URLs max', pro: 'Illimités', icon: '⚡' },
+    { name: 'Rapports détaillés', free: false, pro: 'Avancés + PDF', icon: '📄' },
+    { name: 'Historique des scans', free: false, pro: true, icon: '📄' },
+    { name: 'Programmation de scans', free: false, pro: true, icon: '📅' },
+    { name: 'Envoi par email', free: false, pro: true, icon: '✉️' },
   ];
 
   return (
