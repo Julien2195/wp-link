@@ -13,6 +13,53 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+// Hook d'activation du plugin
+register_activation_hook(__FILE__, 'wp_link_scanner_activate');
+
+function wp_link_scanner_activate()
+{
+    // Enregistrer l'utilisateur lors de l'activation du plugin
+    wp_link_scanner_register_user();
+}
+
+function wp_link_scanner_register_user()
+{
+    $admin_email = get_bloginfo('admin_email');
+    $site_url = home_url();
+
+    if (empty($admin_email)) {
+        return; // Pas d'email admin configuré
+    }
+
+    // URL de l'API (à configurer selon votre environnement)
+    $api_url = 'https://api.linkfixer.io/api/users/register';
+
+    $data = array(
+        'email' => $admin_email,
+        'site_url' => $site_url
+    );
+
+    $response = wp_remote_post($api_url, array(
+        'method' => 'POST',
+        'timeout' => 30,
+        'headers' => array(
+            'Content-Type' => 'application/json',
+        ),
+        'body' => json_encode($data)
+    ));
+
+    if (!is_wp_error($response)) {
+        $body = wp_remote_retrieve_body($response);
+        $result = json_decode($body, true);
+
+        if (isset($result['user']['api_key'])) {
+            // Stocker la clé API dans les options WordPress
+            update_option('wp_link_scanner_api_key', $result['user']['api_key']);
+            update_option('wp_link_scanner_user_id', $result['user']['id']);
+        }
+    }
+}
+
 if (!class_exists('WP_Link_Scanner')) {
     class WP_Link_Scanner
     {
@@ -90,12 +137,14 @@ if (!class_exists('WP_Link_Scanner')) {
                         }
                     }
 
-                    // Expose WordPress context to the frontend (admin email, site url)
+                    // Expose WordPress context to the frontend (admin email, site url, API key)
                     $admin_email = get_bloginfo('admin_email');
                     $site_url    = home_url();
+                    $api_key = get_option('wp_link_scanner_api_key', '');
                     wp_localize_script($handle, 'WPLS_SETTINGS', [
                         'adminEmail' => $admin_email,
                         'siteUrl'    => $site_url,
+                        'apiKey' => $api_key,
                     ]);
                 } else {
                     // Fallback basique si manifest présent mais entrée absente
@@ -121,9 +170,11 @@ if (!class_exists('WP_Link_Scanner')) {
                 // Expose WordPress context in fallback mode as well
                 $admin_email = get_bloginfo('admin_email');
                 $site_url    = home_url();
+                $api_key = get_option('wp_link_scanner_api_key', '');
                 wp_localize_script('wp-link-scanner-app', 'WPLS_SETTINGS', [
                     'adminEmail' => $admin_email,
                     'siteUrl'    => $site_url,
+                    'apiKey' => $api_key,
                 ]);
             }
 

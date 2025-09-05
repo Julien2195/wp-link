@@ -2,6 +2,7 @@
   "name": "wp-link-scanner",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@10",
   "description": "Frontend React (Vite) pour le plugin WordPress WP Link Scanner.",
   "scripts": {
     "dev": "vite",
