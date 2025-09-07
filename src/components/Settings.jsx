@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import UnlockButton from './UnlockButton.jsx';
 import UpgradeModal from './UpgradeModal.jsx';
 import PaymentModal from './PaymentModal.jsx';
 import CancelSubscriptionButton from './CancelSubscriptionButton.jsx';
+import LanguageSelector from './LanguageSelector.jsx';
 import { createEmbeddedCheckoutSession, createHostedCheckoutSession } from '../api/endpoints.js';
 import { useSubscription } from '../hooks/useSubscription.js';
 import Scheduler from './Scheduler.jsx';
 
 export default function Settings({ theme, onChangeTheme }) {
+  const { t, i18n } = useTranslation();
   const { isPro, isFree, subscription } = useSubscription();
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
@@ -16,8 +19,8 @@ export default function Settings({ theme, onChangeTheme }) {
   return (
     <div className="panel">
       <div className="panel-header">
-        <h3>Paramètres</h3>
-        <p>Personnalisez l'apparence et les préférences.</p>
+        <h3>{t('settings.title')}</h3>
+        <p>{t('settings.description')}</p>
       </div>
       <div className="panel-body">
         {/* Bouton upgrade seulement si version gratuite */}
@@ -37,9 +40,10 @@ export default function Settings({ theme, onChangeTheme }) {
               borderRadius: 8,
             }}
           >
-            <h4 style={{ margin: '0 0 8px 0' }}>Abonnement actuel</h4>
+            <h4 style={{ margin: '0 0 8px 0' }}>{t('settings.subscription.current')}</h4>
             <p style={{ margin: '0 0 8px 0' }}>
-              Plan : <strong>{isPro ? 'Pro' : 'Gratuit'}</strong>
+              {t('settings.subscription.plan')} :{' '}
+              <strong>{isPro ? t('subscription.proPlan') : t('subscription.freePlan')}</strong>
               {subscription.isCancelling && (
                 <span
                   style={{
@@ -49,14 +53,21 @@ export default function Settings({ theme, onChangeTheme }) {
                     fontWeight: 'normal',
                   }}
                 >
-                  (Annulation programmée)
+                  ({t('settings.subscription.cancellationScheduled')})
                 </span>
               )}
             </p>
             {subscription.renewsAt && (
               <p style={{ margin: '0', fontSize: '14px', color: 'var(--color-text-secondary)' }}>
-                {subscription.isCancelling ? 'Expire le' : isPro ? 'Renouvellement' : 'Expire'} le :{' '}
-                {new Date(subscription.renewsAt).toLocaleDateString('fr-FR')}
+                {subscription.isCancelling
+                  ? t('subscription.expiresOn')
+                  : isPro
+                    ? t('settings.subscription.renewal')
+                    : t('subscription.expiresOn')}{' '}
+                :{' '}
+                {new Date(subscription.renewsAt).toLocaleDateString(
+                  i18n.language === 'fr' ? 'fr-FR' : 'en-US',
+                )}
               </p>
             )}
 
@@ -67,7 +78,14 @@ export default function Settings({ theme, onChangeTheme }) {
 
         <div className="form-grid">
           <div>
-            <label>Thème</label>
+            <label>{t('settings.general.language')}</label>
+            <div className="form-row">
+              <LanguageSelector />
+            </div>
+          </div>
+
+          <div>
+            <label>{t('settings.general.theme')}</label>
             <div className="form-row">
               <label className="switch">
                 <input
@@ -76,7 +94,7 @@ export default function Settings({ theme, onChangeTheme }) {
                   checked={theme === 'system'}
                   onChange={() => onChangeTheme('system')}
                 />
-                <span>Système</span>
+                <span>{t('settings.general.themes.system')}</span>
               </label>
               <label className="switch">
                 <input
@@ -85,7 +103,7 @@ export default function Settings({ theme, onChangeTheme }) {
                   checked={theme === 'light'}
                   onChange={() => onChangeTheme('light')}
                 />
-                <span>Clair</span>
+                <span>{t('settings.general.themes.light')}</span>
               </label>
               <label className="switch">
                 <input
@@ -94,7 +112,7 @@ export default function Settings({ theme, onChangeTheme }) {
                   checked={theme === 'dark'}
                   onChange={() => onChangeTheme('dark')}
                 />
-                <span>Sombre</span>
+                <span>{t('settings.general.themes.dark')}</span>
               </label>
             </div>
           </div>
@@ -152,7 +170,7 @@ export default function Settings({ theme, onChangeTheme }) {
               console.error('Hosted Checkout indisponible:', err?.message || err, err);
             }
             // 3) No client-only fallback
-            alert('Impossible de démarrer le paiement pour le moment.');
+            alert(t('payment.errorStart'));
           }}
         />
       )}

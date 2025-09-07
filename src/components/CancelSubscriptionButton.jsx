@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cancelSubscription, resumeSubscription } from '../api/endpoints.js';
 import { useSubscription } from '../hooks/useSubscription.js';
 
 export default function CancelSubscriptionButton() {
+  const { t } = useTranslation();
   const { subscription, refresh } = useSubscription();
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -16,10 +18,10 @@ export default function CancelSubscriptionButton() {
       await cancelSubscription();
       await refresh(); // Refresh subscription status
       setShowConfirm(false);
-      alert('Votre abonnement sera annulé à la fin de la période de facturation en cours.');
+      alert(t('subscription.cancel.scheduledAlert'));
     } catch (error) {
-      console.error('Erreur lors de l\'annulation:', error);
-      alert('Erreur lors de l\'annulation de l\'abonnement. Veuillez réessayer.');
+      console.error('Cancel error:', error);
+      alert(t('subscription.cancel.error'));
     } finally {
       setLoading(false);
     }
@@ -30,10 +32,10 @@ export default function CancelSubscriptionButton() {
     try {
       await resumeSubscription();
       await refresh(); // Refresh subscription status
-      alert('Votre abonnement a été repris avec succès.');
+      alert(t('subscription.resume.success'));
     } catch (error) {
-      console.error('Erreur lors de la reprise:', error);
-      alert('Erreur lors de la reprise de l\'abonnement. Veuillez réessayer.');
+      console.error('Resume error:', error);
+      alert(t('subscription.resume.error'));
     } finally {
       setLoading(false);
     }
@@ -55,7 +57,7 @@ export default function CancelSubscriptionButton() {
             fontSize: '14px',
             color: 'var(--color-text)'
           }}>
-            ⚠️ Votre abonnement sera annulé à la fin de la période de facturation en cours.
+            {t('subscription.cancel.scheduledInfo')}
           </p>
         </div>
         <button 
@@ -63,7 +65,7 @@ export default function CancelSubscriptionButton() {
           onClick={handleResume}
           disabled={loading}
         >
-          {loading ? 'Reprise...' : 'Reprendre mon abonnement'}
+          {loading ? t('subscription.resume.processing') : t('subscription.resume.button')}
         </button>
       </div>
     );
@@ -77,7 +79,7 @@ export default function CancelSubscriptionButton() {
         onClick={() => setShowConfirm(true)}
         style={{ marginTop: '16px' }}
       >
-        Annuler mon abonnement
+        {t('subscription.cancel.button')}
       </button>
     );
   }
@@ -91,7 +93,7 @@ export default function CancelSubscriptionButton() {
       backgroundColor: 'color-mix(in srgb, var(--color-danger) 8%, transparent)' 
     }}>
       <h4 style={{ margin: '0 0 8px 0', color: 'var(--color-danger)' }}>
-        Confirmer l'annulation
+        {t('subscription.cancel.confirmTitle')}
       </h4>
       <p style={{ 
         margin: '0 0 16px 0', 
@@ -99,7 +101,7 @@ export default function CancelSubscriptionButton() {
         fontSize: '14px',
         lineHeight: '1.4'
       }}>
-        Êtes-vous sûr de vouloir annuler votre abonnement ? Vous conserverez l'accès aux fonctionnalités Pro jusqu'à la fin de votre période de facturation actuelle.
+        {t('subscription.cancel.confirmMessage')}
       </p>
       <div style={{ display: 'flex', gap: '8px' }}>
         <button 
@@ -107,14 +109,14 @@ export default function CancelSubscriptionButton() {
           onClick={handleCancel}
           disabled={loading}
         >
-          {loading ? 'Annulation...' : 'Oui, annuler'}
+          {loading ? t('subscription.cancel.processing') : t('subscription.cancel.confirmYes')}
         </button>
         <button 
           className="btn" 
           onClick={() => setShowConfirm(false)}
           disabled={loading}
         >
-          Non, garder l'abonnement
+          {t('subscription.cancel.confirmNo')}
         </button>
       </div>
     </div>

@@ -1,9 +1,11 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Elements, CardElement, useElements, useStripe, EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { stripePromise, STRIPE_PUBLISHABLE_KEY } from '../stripe.js';
 import CheckoutForm from './CheckoutForm.jsx';
 
 function CardPaymentForm({ plan = 'pro', onClose, onPaymentMethodCreated }) {
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = React.useState(false);
@@ -29,13 +31,13 @@ function CardPaymentForm({ plan = 'pro', onClose, onPaymentMethodCreated }) {
       });
 
       if (pmError) {
-        setError(pmError.message || 'Erreur de paiement');
+        setError(pmError.message || t('payment.error'));
       } else {
         setResult(paymentMethod);
         onPaymentMethodCreated?.(paymentMethod);
       }
     } catch (err) {
-      setError(err?.message || 'Erreur inattendue');
+      setError(err?.message || t('errors.general'));
     } finally {
       setLoading(false);
     }
@@ -44,20 +46,20 @@ function CardPaymentForm({ plan = 'pro', onClose, onPaymentMethodCreated }) {
   return (
     <form onSubmit={handleSubmit} className="payment-form" style={{ display: 'grid', gap: 12 }}>
       <div>
-        <div style={{ fontWeight: 600, marginBottom: 6 }}>Formule choisie</div>
+        <div style={{ fontWeight: 600, marginBottom: 6 }}>{t('payment.modal.chosenPlan')}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span className="badge">{plan === 'pro' ? 'Pro' : plan}</span>
-          <span style={{ opacity: 0.8 }}>5€ / mois</span>
+          <span className="badge">{plan === 'pro' ? t('payment.proTitle') : plan}</span>
+          <span style={{ opacity: 0.8 }}>{plan === 'pro' ? t('payment.proPrice') : t('payment.freePrice')}</span>
         </div>
       </div>
 
       <div>
-        <label style={{ display: 'block', marginBottom: 6 }}>Informations bancaires</label>
+        <label style={{ display: 'block', marginBottom: 6 }}>{t('payment.modal.cardInfo')}</label>
         <div style={{ padding: 12, border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-bg)' }}>
           <CardElement options={{ hidePostalCode: true }} />
         </div>
         <div style={{ marginTop: 8, fontSize: 12, color: 'color-mix(in srgb, var(--color-text) 70%, transparent)' }}>
-          Utilisez une carte de test Stripe, par ex. 4242 4242 4242 4242
+          {t('payment.modal.testCardHint')}
         </div>
       </div>
 
@@ -66,14 +68,14 @@ function CardPaymentForm({ plan = 'pro', onClose, onPaymentMethodCreated }) {
       )}
       {result && (
         <div className="badge" style={{ color: 'var(--color-success)' }}>
-          Carte validée — PaymentMethod: {result.id}
+          {t('payment.modal.cardValidated', { id: result.id })}
         </div>
       )}
 
       <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-        <button type="button" className="btn" onClick={onClose} disabled={loading}>Annuler</button>
+        <button type="button" className="btn" onClick={onClose} disabled={loading}>{t('common.cancel')}</button>
         <button type="submit" className="btn primary" disabled={!stripe || loading}>
-          {loading ? 'Validation…' : 'Valider la carte'}
+          {loading ? t('payment.modal.validating') : t('payment.modal.validateCard')}
         </button>
       </div>
     </form>
@@ -82,6 +84,7 @@ function CardPaymentForm({ plan = 'pro', onClose, onPaymentMethodCreated }) {
 
 export default function PaymentModal({ open, onClose, plan = 'pro', checkoutClientSecret, onPaymentMethodCreated }) {
   const backdropRef = React.useRef(null);
+  const { t } = useTranslation();
 
   React.useEffect(() => {
     if (!open) return;
@@ -105,19 +108,19 @@ export default function PaymentModal({ open, onClose, plan = 'pro', checkoutClie
       className="modal-backdrop"
       aria-modal="true"
       role="dialog"
-      aria-label="Paiement"
+      aria-label={t('payment.modal.title')}
       onMouseDown={(e) => { if (e.target === backdropRef.current) onClose?.(); }}
     >
       <div className="modal" style={{ maxWidth: 560 }}>
-        <button className="modal__close" onClick={onClose} aria-label="Fermer">✕</button>
+        <button className="modal__close" onClick={onClose} aria-label={t('common.close')}>✕</button>
         <div className="modal__header">
-          <h3 className="modal__title">Paiement</h3>
-          <p className="modal__subtitle">Saisissez vos informations bancaires en toute sécurité</p>
+          <h3 className="modal__title">{t('payment.modal.title')}</h3>
+          <p className="modal__subtitle">{t('payment.modal.subtitle')}</p>
         </div>
         <div className="modal__body">
           {!STRIPE_PUBLISHABLE_KEY ? (
             <div style={{ color: 'var(--color-danger)' }}>
-              Clé Stripe manquante. Définissez VITE_STRIPE_API_KEY dans votre .env.
+              {t('payment.modal.missingKey')}
             </div>
           ) : checkoutClientSecret ? (
             // Embedded Checkout (EmbeddedCheckoutProvider + EmbeddedCheckout)

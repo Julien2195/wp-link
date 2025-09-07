@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSubscription } from '../hooks/useSubscription.js';
 import '../../styles/Sidebar.scss';
 
 export default function Sidebar({ active = 'dashboard', onNavigate }) {
+  const { t } = useTranslation();
   const { isPro, isFree, subscription } = useSubscription();
 
   const nav = (key) => (e) => {
@@ -32,11 +34,12 @@ export default function Sidebar({ active = 'dashboard', onNavigate }) {
         }}
       >
         <div style={{ fontSize: 12, fontWeight: 600, color: isPro ? '#2d5a2d' : '#1a365d' }}>
-          {isPro ? '✓ Version Pro' : 'Version Gratuite'}
+          {isPro ? `✓ ${t('subscription.proPlan')}` : t('subscription.freePlan')}
         </div>
         {isPro && subscription?.renewsAt && (
           <div style={{ fontSize: 10, color: '#666', marginTop: 2 }}>
-            Expire le {new Date(subscription.renewsAt).toLocaleDateString('fr-FR')}
+            {t('subscription.expiresOn')}{' '}
+            {new Date(subscription.renewsAt).toLocaleDateString(t('locale'))}
           </div>
         )}
       </div>
@@ -47,21 +50,21 @@ export default function Sidebar({ active = 'dashboard', onNavigate }) {
           href="#dashboard"
           onClick={nav('dashboard')}
         >
-          Tableau de bord
+          {t('navigation.dashboard')}
         </a>
         <a
           className={`item ${active === 'history' ? 'active' : ''}`}
           href="#history"
           onClick={nav('history')}
         >
-          Historique
+          {t('navigation.history')}
         </a>
         <a
           className={`item ${active === 'settings' ? 'active' : ''}`}
           href="#settings"
           onClick={nav('settings')}
         >
-          Paramètres
+          {t('navigation.settings')}
         </a>
       </nav>
     </aside>

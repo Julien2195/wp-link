@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PaymentElement, useCheckout } from '@stripe/react-stripe-js';
 
 // Helper to validate email with Stripe Checkout client
@@ -9,6 +10,7 @@ const validateEmail = async (email, checkout) => {
 };
 
 const EmailInput = ({ email, setEmail, error, setError }) => {
+  const { t } = useTranslation();
   const checkout = useCheckout();
 
   const handleBlur = async () => {
@@ -25,7 +27,7 @@ const EmailInput = ({ email, setEmail, error, setError }) => {
   return (
     <>
       <label>
-        Email
+        {t('payment.checkout.emailLabel')}
         <input
           id="email"
           type="email"
@@ -33,7 +35,7 @@ const EmailInput = ({ email, setEmail, error, setError }) => {
           onChange={handleChange}
           onBlur={handleBlur}
           className={error ? 'error' : ''}
-          placeholder="you@example.com"
+          placeholder={t('payment.checkout.emailPlaceholder')}
           required
         />
       </label>
@@ -44,6 +46,7 @@ const EmailInput = ({ email, setEmail, error, setError }) => {
 
 export default function CheckoutForm() {
   const checkout = useCheckout();
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState(null);
@@ -83,15 +86,16 @@ export default function CheckoutForm() {
         error={emailError}
         setError={setEmailError}
       />
-      <h4>Paiement</h4>
+      <h4>{t('payment.modal.title')}</h4>
       <div style={{ padding: 12, border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-bg)' }}>
         <PaymentElement id="payment-element" />
       </div>
       <button className="btn primary" disabled={isLoading} id="submit">
-        {isLoading ? 'Traitement…' : `Payer ${totalAmount ? (totalAmount / 100).toFixed(2) : ''} ${currency}`}
+        {isLoading
+          ? t('payment.processing')
+          : t('payment.checkout.payAmount', { amount: totalAmount ? (totalAmount / 100).toFixed(2) : '', currency })}
       </button>
       {message && <div id="payment-message" style={{ color: 'var(--color-danger)' }}>{message}</div>}
     </form>
   );
 }
-
