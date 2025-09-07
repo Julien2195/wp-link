@@ -78,6 +78,16 @@ export async function updateSubscription(plan) {
   return data;
 }
 
+export async function cancelSubscription() {
+    const { data } = await api.post('/me/subscription/cancel');
+    return data;
+}
+
+export async function resumeSubscription() {
+    const { data } = await api.post('/me/subscription/resume');
+    return data;
+}
+
 // Billing — create an Embedded Checkout session (client_secret)
 export async function createEmbeddedCheckoutSession({ plan = 'pro', returnUrl } = {}) {
   // Expected backend response: { clientSecret: '...' }

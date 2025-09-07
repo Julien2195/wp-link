@@ -5,7 +5,13 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import 'dayjs/locale/fr';
+
+// Configurer dayjs avec les plugins nécessaires
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import {
   listSchedules,
   createSchedule,
@@ -98,8 +104,19 @@ function fromLocalDateTimeValue(val) {
 
 function describeSchedule(s) {
   if (s.type === 'one_time') {
+    // L'API nous retourne maintenant la date dans le timezone utilisateur
     const date = new Date(s.runAt);
-    return `Une fois le ${date.toLocaleString()}`;
+
+    // Simple formatage sans conversion de timezone car l'API fait déjà la conversion
+    const formatted = date.toLocaleString('fr-FR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    return `Une fois le ${formatted}`;
   }
   if (s.type === 'recurring') {
     return `Tous les ${s.everyDays} jours, à ${s.time} (${s.timezone})`;
@@ -113,6 +130,7 @@ function computeNextRun(s) {
     if (!s.active) return null;
 
     if (s.type === 'one_time') {
+      // Pour one_time, utiliser runAt directement depuis la DB (déjà en UTC)
       const d = new Date(s.runAt);
       return d > now ? d : null;
     }
@@ -120,20 +138,26 @@ function computeNextRun(s) {
     if (s.type === 'recurring') {
       const [hh, mm] = (s.time || '00:00').split(':').map((x) => parseInt(x, 10));
 
+      // Convertir l'heure courante vers le fuseau horaire de la tâche
+      const userTimezone = s.timezone || 'Europe/Paris';
+      const nowInUserTz = new Date(now.toLocaleString('en-US', { timeZone: userTimezone }));
+
       // Utiliser lastRunAt comme anchor si disponible, sinon createdAt
       const anchor = s.lastRunAt ? new Date(s.lastRunAt) : new Date(s.createdAt);
+      const anchorInUserTz = new Date(anchor.toLocaleString('en-US', { timeZone: userTimezone }));
 
-      // Calculer le prochain run basé sur l'anchor + everyDays
-      let candidate = new Date(anchor);
+      // Calculer le prochain run basé sur l'anchor + everyDays dans le fuseau horaire utilisateur
+      let candidate = new Date(anchorInUserTz);
       candidate.setHours(hh, mm || 0, 0, 0);
 
       // Si le candidat est dans le passé, ajouter everyDays jusqu'à ce qu'il soit dans le futur
       const stepMs = (s.everyDays || 1) * 24 * 3600 * 1000;
-      while (candidate <= now) {
+      while (candidate <= nowInUserTz) {
         candidate = new Date(candidate.getTime() + stepMs);
       }
 
-      return candidate;
+      // Convertir le résultat vers UTC pour l'affichage
+      return new Date(candidate.toLocaleString('en-US', { timeZone: 'UTC' }));
     }
   } catch (_) {}
   return null;
@@ -312,9 +336,24 @@ export default function Scheduler({ onUpgrade }) {
           : '';
       if (type === 'one_time') {
         if (!runAt) throw new Error('Veuillez choisir une date/heure');
+
+        // L'utilisateur veut que la tâche s'exécute à cette heure dans SON timezone
+        // Pas en UTC ! On sauvegarde donc l'heure locale directement.
+        const runAtDate = dayjs.isDayjs(runAt) ? runAt.toDate() : new Date(runAt);
+
+        // Créer une chaîne ISO dans le timezone de l'utilisateur
+        // Format: 2025-09-06T23:35:00 (sans Z, indique l'heure locale)
+        const year = runAtDate.getFullYear();
+        const month = String(runAtDate.getMonth() + 1).padStart(2, '0');
+        const day = String(runAtDate.getDate()).padStart(2, '0');
+        const hours = String(runAtDate.getHours()).padStart(2, '0');
+        const minutes = String(runAtDate.getMinutes()).padStart(2, '0');
+
+        const runAtLocalString = `${year}-${month}-${day}T${hours}:${minutes}:00`;
+
         const payload = {
           type: 'one_time',
-          runAt: dayjs.isDayjs(runAt) ? runAt.toDate().toISOString() : null,
+          runAt: runAtLocalString, // Heure locale, pas UTC
           timezone,
           active: true,
           site,
@@ -533,10 +572,18 @@ export default function Scheduler({ onUpgrade }) {
                       {s.active ? (
                         nextRuns[s.id] ? (
                           <span className="next-run">
-                            Prochaine exécution: {nextRuns[s.id].toLocaleString()}
+                            Prochaine exécution:{' '}
+                            {nextRuns[s.id].toLocaleString('fr-FR', {
+                              timeZone: s.timezone || 'Europe/Paris',
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
                           </span>
                         ) : (
-                          <span className="status pending">En attente/échue</span>
+                          <span className="status pending">En attente</span>
                         )
                       ) : (
                         <span className="status inactive">Désactivée</span>
@@ -601,7 +648,15 @@ export default function Scheduler({ onUpgrade }) {
                     <div className="schedule-title">{describeSchedule(s)}</div>
                     <div className="schedule-meta">
                       <span className="status completed">
-                        ✓ Exécutée le {new Date(s.lastRunAt).toLocaleString()}
+                        ✓ Exécutée le{' '}
+                        {new Date(s.lastRunAt).toLocaleString('fr-FR', {
+                          timeZone: s.timezone || 'Europe/Paris',
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
                       </span>
                     </div>
                   </div>

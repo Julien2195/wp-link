@@ -1,6 +1,6 @@
-# WP Link Scanner (Frontend)
+# WP Link Fixer (Frontend)
 
-Interface d’administration (React + Vite) pour le plugin WordPress « WP Link Scanner ».
+Interface d’administration (React + Vite) pour le plugin WordPress « Link Fixer ».
 
 Cette v1 fournit seulement le frontend. Le backend (scan réel et API REST) pourra être ajouté ensuite.
 

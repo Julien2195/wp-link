@@ -32,7 +32,9 @@ export default function ReportPreview({ stats, items, onClose, scanId }) {
       <div className="modal">
         <div className="modal-header">
           <h3 style={{ margin: 0 }}>Rapport d’analyse des liens</h3>
-          <button className="btn" onClick={onClose} aria-label="Fermer">✕</button>
+          <button className="btn" onClick={onClose} aria-label="Fermer">
+            ✕
+          </button>
         </div>
         <div className="modal-body">
           <p>Date du rapport: {time}</p>
@@ -75,7 +77,11 @@ export default function ReportPreview({ stats, items, onClose, scanId }) {
                       <td>{l.url}</td>
                       <td>{l.type}</td>
                       <td>{l.status}</td>
-                      <td>{l.source}</td>
+                      <td>
+                        {l.sources
+                          ? `${l.sourceCount} source${l.sourceCount > 1 ? 's' : ''}`
+                          : l.source || '-'}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -84,9 +90,11 @@ export default function ReportPreview({ stats, items, onClose, scanId }) {
           </div>
         </div>
         <div className="modal-actions">
-          <button className="btn" onClick={onClose}>Fermer</button>
-          <button 
-            className="btn primary" 
+          <button className="btn" onClick={onClose}>
+            Fermer
+          </button>
+          <button
+            className="btn primary"
             onClick={handleDownload}
             disabled={!scanId || downloading}
             title={!scanId ? 'Aucun scan en cours' : undefined}
