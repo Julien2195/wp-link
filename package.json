@@ -1,9 +1,9 @@
 {
-  "name": "wp-link-scanner",
+  "name": "wp-link-fixer",
   "version": "0.1.0",
   "private": true,
   "packageManager": "npm@10",
-  "description": "Frontend React (Vite) pour le plugin WordPress WP Link Scanner.",
+  "description": "Frontend React (Vite) pour le plugin WordPress Link Fixer.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

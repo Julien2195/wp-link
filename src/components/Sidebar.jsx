@@ -16,7 +16,7 @@ export default function Sidebar({ active = 'dashboard', onNavigate }) {
         <span className="logo" aria-hidden>
           🔗
         </span>
-        <span className="name">WP Link Scanner</span>
+        <span className="name">Link Fixer</span>
       </div>
 
       {/* Affichage du statut d'abonnement */}

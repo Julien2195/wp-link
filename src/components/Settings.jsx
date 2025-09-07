@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import UnlockButton from './UnlockButton.jsx';
 import UpgradeModal from './UpgradeModal.jsx';
 import PaymentModal from './PaymentModal.jsx';
+import CancelSubscriptionButton from './CancelSubscriptionButton.jsx';
 import { createEmbeddedCheckoutSession, createHostedCheckoutSession } from '../api/endpoints.js';
 import { useSubscription } from '../hooks/useSubscription.js';
 import Scheduler from './Scheduler.jsx';
@@ -23,6 +24,44 @@ export default function Settings({ theme, onChangeTheme }) {
         {isFree && (
           <div className="unlock-cta" style={{ marginBottom: 16 }}>
             <UnlockButton onClick={() => setShowUpgrade(true)} />
+          </div>
+        )}
+
+        {/* Informations sur l'abonnement actuel */}
+        {subscription && (
+          <div
+            style={{
+              marginBottom: 24,
+              padding: 16,
+              backgroundColor: 'var(--color-bg-secondary)',
+              borderRadius: 8,
+            }}
+          >
+            <h4 style={{ margin: '0 0 8px 0' }}>Abonnement actuel</h4>
+            <p style={{ margin: '0 0 8px 0' }}>
+              Plan : <strong>{isPro ? 'Pro' : 'Gratuit'}</strong>
+              {subscription.isCancelling && (
+                <span
+                  style={{
+                    marginLeft: '8px',
+                    fontSize: '12px',
+                    color: 'var(--color-warning)',
+                    fontWeight: 'normal',
+                  }}
+                >
+                  (Annulation programmée)
+                </span>
+              )}
+            </p>
+            {subscription.renewsAt && (
+              <p style={{ margin: '0', fontSize: '14px', color: 'var(--color-text-secondary)' }}>
+                {subscription.isCancelling ? 'Expire le' : isPro ? 'Renouvellement' : 'Expire'} le :{' '}
+                {new Date(subscription.renewsAt).toLocaleDateString('fr-FR')}
+              </p>
+            )}
+
+            {/* Bouton d'annulation pour les utilisateurs Pro */}
+            {isPro && <CancelSubscriptionButton />}
           </div>
         )}
 

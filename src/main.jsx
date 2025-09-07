@@ -4,7 +4,7 @@ import App from './App.jsx';
 import { SubscriptionProvider } from './contexts/SubscriptionContext.jsx';
 import '../styles/App.scss';
 
-const container = document.getElementById('wp-link-scanner-root');
+const container = document.getElementById('wp-link-fixer-root');
 if (container) {
   const root = createRoot(container);
   root.render(
