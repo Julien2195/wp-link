@@ -145,6 +145,7 @@ if (!class_exists('WP_Link_Scanner')) {
                         'adminEmail' => $admin_email,
                         'siteUrl'    => $site_url,
                         'apiKey' => $api_key,
+                        'locale' => get_locale(),
                     ]);
                 } else {
                     // Fallback basique si manifest présent mais entrée absente
@@ -175,6 +176,7 @@ if (!class_exists('WP_Link_Scanner')) {
                     'adminEmail' => $admin_email,
                     'siteUrl'    => $site_url,
                     'apiKey' => $api_key,
+                    'locale' => get_locale(),
                 ]);
             }
 

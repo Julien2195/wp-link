@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSubscription } from '../hooks/useSubscription.js';
 import ReportPreview from './ReportPreview.jsx';
 import { listScans, getScanResults, clearScans } from '../api/endpoints.js';
 
 export default function History({ onUpgrade }) {
+  const { t } = useTranslation();
   const [scans, setScans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState(null);
@@ -26,18 +28,13 @@ export default function History({ onUpgrade }) {
   };
 
   const onClearHistory = async () => {
-    if (
-      !confirm(
-        "Voulez-vous vraiment vider tout l'historique des scans ? Cette action est irréversible.",
-      )
-    )
-      return;
+    if (!confirm(t('history.confirmClear'))) return;
     try {
       await clearScans();
       await loadScans();
     } catch (e) {
       console.error("Erreur lors du nettoyage de l'historique:", e);
-      alert('Échec du nettoyage. Consultez les logs.');
+      alert(t('errors.clearHistory'));
     }
   };
 
@@ -62,15 +59,16 @@ export default function History({ onUpgrade }) {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString('fr-FR');
+    const locale = t('locale') || 'fr-FR';
+    return new Date(dateString).toLocaleString(locale);
   };
 
   if (loading) {
     return (
       <div className="panel">
         <div className="panel-header">
-          <h3>Historique des scans</h3>
-          <p>Chargement...</p>
+          <h3>{t('history.title')}</h3>
+          <p>{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -83,12 +81,12 @@ export default function History({ onUpgrade }) {
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}
       >
         <div>
-          <h3>Historique des scans</h3>
-          <p>Liste des derniers scans réalisés.</p>
+          <h3>{t('history.title')}</h3>
+          <p>{t('history.description')}</p>
         </div>
         {scans.length > 0 && (
           <button className="btn danger" onClick={onClearHistory}>
-            Vider l'historique
+            {t('history.clearHistory')}
           </button>
         )}
       </div>
@@ -97,17 +95,17 @@ export default function History({ onUpgrade }) {
         {isFree && !canAccessFeature('scan_history') && (
           <div className="feature-locked">
             <div className="lock-icon">🔒</div>
-            <h4>Fonctionnalité Pro</h4>
-            <p>L'historique des scans est disponible uniquement avec le plan Pro.</p>
+            <h4>{t('subscription.proFeature')}</h4>
+            <p>{t('history.proFeatureDescription')}</p>
             <button className="btn primary" onClick={onUpgrade}>
-              Passer au plan Pro
+              {t('subscription.upgradeToPro')}
             </button>
           </div>
         )}
 
         {/* Contenu normal pour les utilisateurs Pro ou si la fonctionnalité est accessible */}
         {(!isFree || canAccessFeature('scan_history')) && scans.length === 0 && (
-          <p>Aucun scan trouvé. Lancez votre premier scan depuis le dashboard.</p>
+          <p>{t('history.noScans')}</p>
         )}
 
         {(!isFree || canAccessFeature('scan_history')) && scans.length > 0 && (
@@ -115,13 +113,13 @@ export default function History({ onUpgrade }) {
             <table className="results-table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Statut</th>
-                  <th>Liens totaux</th>
-                  <th>OK</th>
-                  <th>Redirs</th>
-                  <th>Cassés</th>
-                  <th>Actions</th>
+                  <th>{t('history.table.date')}</th>
+                  <th>{t('history.table.status')}</th>
+                  <th>{t('history.table.totalLinks')}</th>
+                  <th>{t('results.status.ok')}</th>
+                  <th>{t('history.table.redirects')}</th>
+                  <th>{t('results.status.broken')}</th>
+                  <th>{t('history.table.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -141,7 +139,7 @@ export default function History({ onUpgrade }) {
                         onClick={() => openPreview(scan)}
                         disabled={scan.status === 'running' || scan.status === 'pending'}
                       >
-                        Voir rapport PDF
+                        {t('history.viewReport')}
                       </button>
                     </td>
                   </tr>

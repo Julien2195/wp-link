@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { downloadScanReport } from '../api/endpoints.js';
 
 export default function ReportPreview({ stats, items, onClose, scanId }) {
+  const { t } = useTranslation();
   const [downloading, setDownloading] = useState(false);
-  const time = new Date().toLocaleString();
+  const time = new Date().toLocaleString(t('locale') || 'en-US');
 
   const handleDownload = async () => {
     if (!scanId || downloading) return;
@@ -20,8 +22,8 @@ export default function ReportPreview({ stats, items, onClose, scanId }) {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (e) {
-      console.error('Erreur lors du téléchargement du PDF:', e);
-      alert("Impossible de télécharger le PDF pour le moment.");
+      console.error('PDF download error:', e);
+      alert(t('errors.pdfDownload'));
     } finally {
       setDownloading(false);
     }
@@ -31,44 +33,44 @@ export default function ReportPreview({ stats, items, onClose, scanId }) {
     <div className="wp-link-modal-backdrop" role="dialog" aria-modal="true">
       <div className="modal">
         <div className="modal-header">
-          <h3 style={{ margin: 0 }}>Rapport d’analyse des liens</h3>
-          <button className="btn" onClick={onClose} aria-label="Fermer">
+          <h3 style={{ margin: 0 }}>{t('report.title')}</h3>
+          <button className="btn" onClick={onClose} aria-label={t('common.close')}>
             ✕
           </button>
         </div>
         <div className="modal-body">
-          <p>Date du rapport: {time}</p>
+          <p>{t('report.dateLabel')}: {time}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
             <div className="panel">
               <div className="panel-body">
-                <strong>Total</strong>
+                <strong>{t('history.totalLinks')}</strong>
                 <div style={{ fontSize: 24 }}>{stats.total}</div>
               </div>
             </div>
             <div className="panel">
               <div className="panel-body">
-                <strong>OK</strong>
+                <strong>{t('results.status.ok')}</strong>
                 <div style={{ fontSize: 24, color: 'var(--color-success)' }}>{stats.ok}</div>
               </div>
             </div>
             <div className="panel">
               <div className="panel-body">
-                <strong>Cassés</strong>
+                <strong>{t('results.status.broken')}</strong>
                 <div style={{ fontSize: 24, color: 'var(--color-danger)' }}>{stats.broken}</div>
               </div>
             </div>
           </div>
 
           <div style={{ marginTop: 16 }}>
-            <h4>Échantillon de liens</h4>
+            <h4>{t('report.sampleTitle')}</h4>
             <div className="table-wrap">
               <table className="results-table">
                 <thead>
                   <tr>
-                    <th>URL</th>
-                    <th>Type</th>
-                    <th>Statut</th>
-                    <th>Source</th>
+                    <th>{t('results.table.url')}</th>
+                    <th>{t('results.table.type')}</th>
+                    <th>{t('results.table.status')}</th>
+                    <th>{t('results.table.foundOn')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -79,7 +81,7 @@ export default function ReportPreview({ stats, items, onClose, scanId }) {
                       <td>{l.status}</td>
                       <td>
                         {l.sources
-                          ? `${l.sourceCount} source${l.sourceCount > 1 ? 's' : ''}`
+                          ? t(l.sourceCount === 1 ? 'results.sources_one' : 'results.sources_other', { count: l.sourceCount })
                           : l.source || '-'}
                       </td>
                     </tr>
@@ -91,15 +93,15 @@ export default function ReportPreview({ stats, items, onClose, scanId }) {
         </div>
         <div className="modal-actions">
           <button className="btn" onClick={onClose}>
-            Fermer
+            {t('common.close')}
           </button>
           <button
             className="btn primary"
             onClick={handleDownload}
             disabled={!scanId || downloading}
-            title={!scanId ? 'Aucun scan en cours' : undefined}
+            title={!scanId ? t('report.noScan') : undefined}
           >
-            {downloading ? 'Téléchargement…' : 'Télécharger PDF'}
+            {downloading ? t('report.downloading') : t('report.downloadPdf')}
           </button>
         </div>
       </div>

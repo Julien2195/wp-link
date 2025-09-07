@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import '../../styles/StatsCards.scss';
 
 const Stat = ({ label, value, tone = 'default' }) => (
@@ -9,12 +10,14 @@ const Stat = ({ label, value, tone = 'default' }) => (
 );
 
 export default function StatsCards({ stats }) {
+  const { t } = useTranslation();
+
   const items = [
-    { label: 'Liens totaux', value: stats.total, tone: 'accent' },
-    { label: 'Internes', value: stats.internal },
-    { label: 'Externes', value: stats.external },
-    { label: 'OK', value: stats.ok, tone: 'success' },
-    { label: 'Cassés', value: stats.broken, tone: 'danger' },
+    { label: t('dashboard.stats.totalLinks'), value: stats.total, tone: 'accent' },
+    { label: t('results.status.internal'), value: stats.internal },
+    { label: t('results.status.external'), value: stats.external },
+    { label: t('dashboard.stats.okLinks'), value: stats.ok, tone: 'success' },
+    { label: t('dashboard.stats.brokenLinks'), value: stats.broken, tone: 'danger' },
   ];
 
   return (

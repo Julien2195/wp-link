@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { updateSubscription } from '../api/endpoints.js';
 
-export default function UnlockButton({ label = 'Debloquer toutes les fonctionnalités', className = '', onClick }) {
+export default function UnlockButton({ label, className = '', onClick }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+
+  const defaultLabel = label || t('subscription.unlockFeatures');
 
   const handleClick = async () => {
     if (loading) return;
@@ -27,7 +31,7 @@ export default function UnlockButton({ label = 'Debloquer toutes les fonctionnal
 
   return (
     <button className={`btn primary large ${className}`} onClick={handleClick} disabled={loading}>
-      {loading ? 'Chargement…' : label}
+      {loading ? t('common.loading') : defaultLabel}
     </button>
   );
 }
