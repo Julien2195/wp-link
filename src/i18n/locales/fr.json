@@ -1,0 +1,329 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "refresh": "Actualiser",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "export": "Exporter",
+    "import": "Importer",
+    "settings": "Paramètres",
+    "help": "Aide",
+    "documentation": "Documentation"
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "history": "Historique",
+    "settings": "Paramètres",
+    "scheduler": "Planificateur"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "scanForm": {
+      "title": "Scanner les liens",
+      "description": "Analysez votre site à la recherche de liens brisés",
+      "globalScan": "Scan global du site",
+      "globalScanDescription": "Scanne tous les liens des articles, pages, menus et widgets",
+      "includeMenus": "Inclure les menus",
+      "includeWidgets": "Inclure les widgets",
+      "urlPlaceholder": "https://example.com ou laissez vide pour scanner tout le site",
+      "startScan": "Démarrer le scan",
+      "scanning": "Scan en cours...",
+      "stopScan": "Arrêter le scan",
+      "limitMessage": "Version gratuite : analyse limitée aux {{max}} premières URLs trouvées.",
+      "limitMessageEnd": "pour analyser toutes les URLs de votre site."
+    },
+    "stats": {
+      "totalLinks": "Liens totaux",
+      "brokenLinks": "Liens cassés",
+      "okLinks": "Liens valides",
+      "scanning": "Scan en cours"
+    }
+  },
+  "results": {
+    "title": "Résultats du scan",
+    "noResults": "Aucun résultat trouvé",
+    "resultsShown": "résultats affichés sur",
+    "searchPlaceholder": "Rechercher une URL ou source…",
+    "sources_0": "{{count}} source",
+    "sources_one": "{{count}} source",
+    "sources_other": "{{count}} sources",
+    "moreOthers": "+ {{count}} autres",
+    "filters": {
+      "all": "Tous",
+      "internal": "Internes",
+      "external": "Externes",
+      "ok": "Valides",
+      "broken": "Cassés",
+      "sortBy": "Trier par",
+      "url": "URL",
+      "status": "Statut",
+      "lastChecked": "Dernière vérification"
+    },
+    "table": {
+      "url": "URL",
+      "status": "Statut",
+      "type": "Type",
+      "foundOn": "Trouvé sur",
+      "lastChecked": "Dernière vérification",
+      "actions": "Actions"
+    },
+    "status": {
+      "ok": "Valide",
+      "broken": "Cassé",
+      "redirect": "Redirection",
+      "internal": "Interne",
+      "external": "Externe"
+    }
+  },
+  "history": {
+    "title": "Historique des scans",
+    "description": "Liste des derniers scans réalisés",
+    "noHistory": "Aucun historique de scan",
+    "noScans": "Aucun scan trouvé. Lancez votre premier scan depuis le tableau de bord",
+    "clearHistory": "Vider l'historique",
+    "confirmClear": "Voulez-vous vraiment vider tout l'historique des scans ? Cette action est irréversible.",
+    "proFeatureDescription": "L'historique des scans est disponible uniquement avec le plan Pro",
+    "table": {
+      "date": "Date",
+      "status": "Statut",
+      "totalLinks": "Liens totaux",
+      "redirects": "Redirs",
+      "actions": "Actions"
+    },
+    "scanDate": "Date du scan",
+    "totalLinks": "Liens totaux",
+    "brokenLinks": "Liens cassés",
+    "actions": "Actions",
+    "viewReport": "Voir le rapport",
+    "deleteReport": "Supprimer le rapport"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "description": "Personnalisez l'apparence et les préférences",
+    "general": {
+      "title": "Général",
+      "theme": "Thème",
+      "themes": {
+        "system": "Système",
+        "light": "Clair",
+        "dark": "Sombre"
+      },
+      "language": "Langue"
+    },
+    "subscription": {
+      "current": "Abonnement actuel",
+      "plan": "Plan",
+      "cancellationScheduled": "Annulation programmée",
+      "renewal": "Renouvellement"
+    },
+    "scanning": {
+      "title": "Configuration du scan",
+      "timeout": "Délai d'expiration (secondes)",
+      "userAgent": "User Agent",
+      "followRedirects": "Suivre les redirections",
+      "checkImages": "Vérifier les images",
+      "checkDocuments": "Vérifier les documents"
+    }
+  },
+  "scheduler": {
+    "title": "Planificateur de scans",
+    "description": "Programmez des scans automatiques de vos liens",
+    "enabled": "Activer la planification",
+    "frequency": "Fréquence",
+    "frequencies": {
+      "daily": "Quotidien",
+      "weekly": "Hebdomadaire",
+      "monthly": "Mensuel"
+    },
+    "nextScan": "Prochain scan",
+    "lastScan": "Dernier scan",
+    "save": "Enregistrer la planification",
+    "proFeature": "Fonctionnalité Pro",
+    "proDescription": "La programmation automatique de scans est disponible uniquement avec le plan Pro.",
+    "upgradeButton": "Passer au plan Pro",
+    "emailSettings": "Paramètres email",
+    "emailEnabled": "Activer les notifications email",
+    "emailAddress": "Adresse email",
+    "emailHint": "Pré-rempli avec l’e‑mail admin WordPress (modifiable).",
+    "scheduleType": "Type de planification",
+    "oneTime": "Une fois",
+    "oneTimeHint": "Exécuter à une date et heure précise",
+    "recurring": "Récurrent",
+    "recurringHint": "Répéter selon un intervalle défini",
+    "selectDateTime": "Sélectionner date et heure",
+    "timezone": "Fuseau horaire",
+    "repeatEvery": "Répéter tous les",
+    "days": "jours",
+    "executionTime": "Heure d'exécution",
+    "createSchedule": "Créer la planification",
+    "activeSchedules": "Planifications actives",
+    "noActiveSchedules": "Aucune planification active.",
+    "createFirstSchedule": "Créez votre première planification ci-dessus.",
+    "nextExecution": "Prochaine exécution",
+    "pending": "En attente",
+    "inactive": "Désactivée",
+    "active": "Active",
+    "delete": "Supprimer",
+    "deleteConfirm": "Supprimer cette planification ?",
+    "scheduleHistory": "Historique des exécutions",
+    "noHistory": "Aucun historique d'exécution.",
+    "clearHistory": "Effacer l'historique",
+    "clearHistoryConfirm": "Effacer tout l'historique d'exécution ?",
+    "executedAt": "Exécuté le",
+    "success": "Succès",
+    "failed": "Échec",
+    "errorInvalidDays": "Nombre de jours invalide",
+    "errorSelectDateTime": "Veuillez choisir une date/heure",
+    "errorCreate": "Erreur lors de l'ajout",
+    "errorUpdate": "Impossible de mettre à jour",
+    "errorDelete": "Erreur lors de la suppression",
+    "errorLoad": "Erreur lors du chargement",
+    "errorClearHistory": "Erreur lors de l'effacement de l'historique",
+    "scheduleDescriptions": {
+      "oneTime": "Une fois le {{date}}",
+      "recurring": "Tous les {{days}} jours, à {{time}} ({{timezone}})",
+      "default": "Planification"
+    },
+    "recurringEvery": "Tous les",
+    "daysAt": "jours, à",
+    "notifyByEmail": "Notifier par email",
+    "add": "Ajouter",
+    "scheduled": "Planifications programmées",
+    "nextRun": "Prochaine exécution"
+  },
+  "subscription": {
+    "freePlan": "Plan Gratuit",
+    "proPlan": "Plan Pro",
+    "upgrade": "Mettre à niveau",
+    "upgradeToPro": "Passer au plan Pro",
+    "proFeature": "Fonctionnalité Pro",
+    "proFeatures": "Scans illimités • URLs illimitées par scan",
+    "urlLimit": "Maximum {{max}} URLs par scan",
+    "unlockFeatures": "Débloquer toutes les fonctionnalités",
+    "expiresOn": "Expire le",
+    "resume": {
+      "button": "Reprendre mon abonnement",
+      "processing": "Reprise...",
+      "success": "Votre abonnement a été repris avec succès.",
+      "error": "Erreur lors de la reprise de l'abonnement. Veuillez réessayer."
+    },
+    "cancelButton": "Annuler mon abonnement",
+    "cancel": {
+      "button": "Annuler mon abonnement",
+      "confirmTitle": "Confirmer l'annulation",
+      "confirmMessage": "Êtes-vous sûr de vouloir annuler votre abonnement ? Vous conserverez l'accès aux fonctionnalités Pro jusqu'à la fin de votre période de facturation actuelle.",
+      "processing": "Annulation...",
+      "confirmYes": "Oui, annuler",
+      "confirmNo": "Non, garder l'abonnement",
+      "scheduledInfo": "⚠️ Votre abonnement sera annulé à la fin de la période de facturation en cours.",
+      "scheduledAlert": "Votre abonnement sera annulé à la fin de la période de facturation en cours.",
+      "error": "Erreur lors de l'annulation de l'abonnement. Veuillez réessayer."
+    },
+    "limits": {
+      "scansPerMonth": "Scans par mois",
+      "linksPerScan": "Liens par scan",
+      "historyRetention": "Rétention de l'historique",
+      "scheduling": "Planification automatique",
+      "emailReports": "Rapports par email",
+      "priority": "Support prioritaire"
+    },
+    "values": {
+      "unlimited": "Illimité",
+      "days": "{{count}} jours",
+      "included": "Inclus",
+      "notIncluded": "Non inclus"
+    }
+  },
+  "payment": {
+    "title": "Choisir un plan",
+    "subtitle": "Débloquez tout le potentiel de votre scanner WordPress",
+    "description": "Choisissez l'offre qui vous convient",
+    "monthly": "Mensuel",
+    "yearly": "Annuel",
+    "save": "Économisez {{percent}}%",
+    "selectPlan": "Choisir ce plan",
+    "choosePlan": "Choisir ce plan",
+    "chooseFree": "Choisir",
+    "processing": "Traitement en cours...",
+    "success": "Paiement réussi !",
+    "error": "Erreur de paiement",
+    "errorStart": "Impossible de démarrer le paiement pour le moment.",
+    "errorLoadingPlans": "Impossible de charger les offres",
+    "freePerMonth": "0 € / mois",
+    "priceEurPerMonth": "{{price}} € / mois",
+    "priceGenericPerMonth": "{{price}} {{currency}} / mois",
+    "recommended": "Recommandé",
+    "freeTitle": "Gratuit",
+    "freePrice": "0 € / mois",
+    "proTitle": "Pro",
+    "proPrice": "7 € / mois",
+    "tryFree": "Essayer gratuitement",
+    "upgradePro": "Passer en Pro",
+    "currentPlan": "Plan actuel",
+    "continueToPayment": "Continuer vers le paiement",
+    "compare": {
+      "features": {
+        "linkScans": "Scans de liens",
+        "detailedReports": "Rapports détaillés",
+        "scanHistory": "Historique des scans",
+        "scanScheduling": "Programmation de scans",
+        "emailDelivery": "Envoi par email"
+      },
+      "proReports": "Avancés + PDF"
+    },
+    "modal": {
+      "title": "Paiement",
+      "subtitle": "Saisissez vos informations bancaires en toute sécurité",
+      "missingKey": "Clé Stripe manquante. Définissez VITE_STRIPE_API_KEY dans votre .env.",
+      "chosenPlan": "Formule choisie",
+      "cardInfo": "Informations bancaires",
+      "testCardHint": "Utilisez une carte de test Stripe, par ex. 4242 4242 4242 4242",
+      "validateCard": "Valider la carte",
+      "validating": "Validation…",
+      "cardValidated": "Carte validée — PaymentMethod: {{id}}"
+    },
+    "features": {
+      "limitedScan": "Scan limité (ex: 100 liens / scan)",
+      "basicHistory": "Historique basique",
+      "unlimitedScans": "Scans illimités",
+      "pdfReports": "Génération de rapport PDF",
+      "scheduledTasks": "Tâches planifiées (cron hebdo)",
+      "prioritySupport": "Support prioritaire"
+    },
+    "checkout": {
+      "emailLabel": "Email",
+      "emailPlaceholder": "vous@example.com",
+      "payAmount": "Payer {{amount}} {{currency}}"
+    }
+  },
+  "errors": {
+    "general": "Une erreur s'est produite",
+    "network": "Erreur de réseau",
+    "timeout": "Délai d'expiration dépassé",
+    "unauthorized": "Non autorisé",
+    "forbidden": "Accès interdit",
+    "notFound": "Non trouvé",
+    "serverError": "Erreur serveur",
+    "clearHistory": "Échec du nettoyage. Consultez les logs.",
+    "pdfDownload": "Impossible de télécharger le PDF pour le moment."
+  },
+  "report": {
+    "title": "Rapport d’analyse des liens",
+    "dateLabel": "Date du rapport",
+    "sampleTitle": "Échantillon de liens",
+    "downloadPdf": "Télécharger PDF",
+    "downloading": "Téléchargement…",
+    "noScan": "Aucun scan en cours"
+  },
+  "locale": "fr-FR"
+}

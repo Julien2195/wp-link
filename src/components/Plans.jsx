@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import '../../styles/Plans.scss';
 import { getPlans, updateSubscription } from '../api/endpoints.js';
 
@@ -19,18 +20,23 @@ function PlanCard({ title, price, features, badge, cta, variant = 'default', onC
       <div className="features">
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {features.map((f) => (
-            <li key={f}><Check />{f}</li>
+            <li key={f}>
+              <Check /> {f}
+            </li>
           ))}
         </ul>
       </div>
       <div className="cta">
-        <button className={`btn ${variant === 'pro' ? 'primary' : ''}`} onClick={onClick}>{cta}</button>
+        <button className={`btn ${variant === 'pro' ? 'primary' : ''}`} onClick={onClick}>
+          {cta}
+        </button>
       </div>
     </div>
   );
 }
 
 export default function Plans({ onSelect }) {
+  const { t } = useTranslation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -44,7 +50,7 @@ export default function Plans({ onSelect }) {
         setItems(Array.isArray(data?.items) ? data.items : []);
       } catch (e) {
         if (!mounted) return;
-        setError('Impossible de charger les offres');
+        setError(t('payment.errorLoadingPlans'));
       } finally {
         if (mounted) setLoading(false);
       }
@@ -52,12 +58,12 @@ export default function Plans({ onSelect }) {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [t]);
 
   const formatPrice = (price, currency) => {
-    if (!price) return '0 € / mois';
-    if (currency === 'EUR') return `${price} € / mois`;
-    return `${price} ${currency} / mo`;
+    if (!price) return t('payment.freePerMonth');
+    if (currency === 'EUR') return t('payment.priceEurPerMonth', { price });
+    return t('payment.priceGenericPerMonth', { price, currency });
   };
 
   const onSelectPlan = async (planId) => {
@@ -67,7 +73,7 @@ export default function Plans({ onSelect }) {
         window.open(res.checkoutUrl, '_blank');
       }
       onSelect?.(res?.plan || planId);
-    } catch (e) {
+    } catch {
       // ignore for now
     }
   };
@@ -76,11 +82,11 @@ export default function Plans({ onSelect }) {
     <div className="section">
       <div className="panel">
         <div className="panel-header">
-          <h3>Offres</h3>
-          <p>Choisissez l’offre qui vous convient.</p>
+          <h3>{t('payment.title')}</h3>
+          <p>{t('payment.description')}</p>
         </div>
         <div className="panel-body">
-          {loading && <p>Chargement…</p>}
+          {loading && <p>{t('common.loading')}</p>}
           {error && <p className="error">{error}</p>}
           {!loading && !error && (
             <div className="plans-grid">
@@ -91,33 +97,36 @@ export default function Plans({ onSelect }) {
                     title={p.title}
                     price={formatPrice(p.price, p.currency)}
                     features={p.features || []}
-                    cta={p.price > 0 ? 'Choisir ce plan' : 'Choisir'}
+                    cta={p.price > 0 ? t('payment.choosePlan') : t('payment.chooseFree')}
                     variant={p.recommended ? 'pro' : 'default'}
-                    badge={p.recommended ? 'Recommandé' : undefined}
+                    badge={p.recommended ? t('payment.recommended') : undefined}
                     onClick={() => onSelectPlan(p.id)}
                   />
                 ))
               ) : (
                 <>
                   <PlanCard
-                    title="Gratuit"
-                    price="0 € / mois"
-                    features={['Scan limité (ex: 100 liens / scan)', 'Historique basique']}
-                    cta="Essayer gratuitement"
+                    title={t('payment.freeTitle')}
+                    price={t('payment.freePrice')}
+                    features={[
+                      t('payment.features.limitedScan'),
+                      t('payment.features.basicHistory'),
+                    ]}
+                    cta={t('payment.tryFree')}
                     onClick={() => onSelectPlan('free')}
                   />
                   <PlanCard
-                    title="Pro"
-                    price="7 € / mois"
+                    title={t('payment.proTitle')}
+                    price={t('payment.proPrice')}
                     features={[
-                      'Scans illimités',
-                      'Génération de rapport PDF',
-                      'Tâches planifiées (cron hebdo)',
-                      'Support prioritaire',
+                      t('payment.features.unlimitedScans'),
+                      t('payment.features.pdfReports'),
+                      t('payment.features.scheduledTasks'),
+                      t('payment.features.prioritySupport'),
                     ]}
-                    cta="Passer en Pro"
+                    cta={t('payment.upgradePro')}
                     variant="pro"
-                    badge="Recommandé"
+                    badge={t('payment.recommended')}
                     onClick={() => onSelectPlan('pro')}
                   />
                 </>

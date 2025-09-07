@@ -26,6 +26,11 @@ api.interceptors.request.use((config) => {
     // ignore
   }
 
+    // Utiliser la clé API pour l'authentification
+    if (typeof window !== 'undefined' && window.WPLS_SETTINGS && window.WPLS_SETTINGS.apiKey) {
+        config.headers = { ...config.headers, 'X-API-Key': window.WPLS_SETTINGS.apiKey };
+    }
+
   // WordPress REST can require a nonce header
   // If you enqueue with wp_localize_script and expose wpApiSettings.nonce
   const wpNonce = (typeof window !== 'undefined' && window.wpApiSettings && window.wpApiSettings.nonce) || null;
@@ -33,7 +38,7 @@ api.interceptors.request.use((config) => {
     config.headers = { ...config.headers, 'X-WP-Nonce': wpNonce };
   }
 
-    // Ajouter les informations du site WordPress pour identifier l'utilisateur
+    // Ajouter les informations du site WordPress pour identifier l'utilisateur (en backup)
     if (typeof window !== 'undefined' && window.WPLS_SETTINGS) {
         const { adminEmail, siteUrl } = window.WPLS_SETTINGS;
         if (adminEmail) {

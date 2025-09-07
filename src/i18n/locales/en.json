@@ -1,0 +1,329 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "refresh": "Refresh",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "settings": "Settings",
+    "help": "Help",
+    "documentation": "Documentation"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "history": "History",
+    "settings": "Settings",
+    "scheduler": "Scheduler"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "scanForm": {
+      "title": "Link Scanner",
+      "description": "Internal and external link analysis",
+      "urlPlaceholder": "https://example.com or leave empty to scan entire site",
+      "startScan": "Start Scan",
+      "scanning": "Scanning...",
+      "stopScan": "Stop Scan",
+      "includeMenus": "Include menus",
+      "includeWidgets": "Include widgets",
+      "globalScan": "Global site scan",
+      "globalScanDescription": "Scans all links from posts, pages, menus and widgets",
+      "limitMessage": "Free version: analysis limited to the first {{max}} URLs found.",
+      "limitMessageEnd": "to analyze all URLs on your site."
+    },
+    "stats": {
+      "totalLinks": "Total Links",
+      "brokenLinks": "Broken Links",
+      "okLinks": "Valid Links",
+      "scanning": "Scanning"
+    }
+  },
+  "results": {
+    "title": "Scan Results",
+    "noResults": "No results found",
+    "resultsShown": "results shown out of",
+    "searchPlaceholder": "Search for a URL or source…",
+    "sources_0": "{{count}} source",
+    "sources_one": "{{count}} source",
+    "sources_other": "{{count}} sources",
+    "moreOthers": "+ {{count}} others",
+    "filters": {
+      "all": "All",
+      "internal": "Internal",
+      "external": "External",
+      "ok": "Valid",
+      "broken": "Broken",
+      "sortBy": "Sort by",
+      "url": "URL",
+      "status": "Status",
+      "lastChecked": "Last Checked"
+    },
+    "table": {
+      "url": "URL",
+      "status": "Status",
+      "type": "Type",
+      "foundOn": "Found On",
+      "lastChecked": "Last Checked",
+      "actions": "Actions"
+    },
+    "status": {
+      "ok": "Valid",
+      "broken": "Broken",
+      "redirect": "Redirect",
+      "internal": "Internal",
+      "external": "External"
+    }
+  },
+  "history": {
+    "title": "Scan History",
+    "description": "List of recent scans performed",
+    "noHistory": "No scan history",
+    "noScans": "No scans found. Launch your first scan from the dashboard",
+    "clearHistory": "Clear History",
+    "confirmClear": "Do you really want to clear all scan history? This action is irreversible.",
+    "proFeatureDescription": "Scan history is only available with the Pro plan",
+    "table": {
+      "date": "Date",
+      "status": "Status",
+      "totalLinks": "Total Links",
+      "redirects": "Redirects",
+      "actions": "Actions"
+    },
+    "scanDate": "Scan Date",
+    "totalLinks": "Total Links",
+    "brokenLinks": "Broken Links",
+    "actions": "Actions",
+    "viewReport": "View Report",
+    "deleteReport": "Delete Report"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Customize appearance and preferences",
+    "general": {
+      "title": "General",
+      "theme": "Theme",
+      "themes": {
+        "system": "System",
+        "light": "Light",
+        "dark": "Dark"
+      },
+      "language": "Language"
+    },
+    "subscription": {
+      "current": "Current Subscription",
+      "plan": "Plan",
+      "cancellationScheduled": "Cancellation scheduled",
+      "renewal": "Renewal"
+    },
+    "scanning": {
+      "title": "Scan Configuration",
+      "timeout": "Timeout (seconds)",
+      "userAgent": "User Agent",
+      "followRedirects": "Follow Redirects",
+      "checkImages": "Check Images",
+      "checkDocuments": "Check Documents"
+    }
+  },
+  "scheduler": {
+    "title": "Scan Scheduler",
+    "description": "Schedule automatic link scans",
+    "enabled": "Enable Scheduling",
+    "frequency": "Frequency",
+    "frequencies": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    },
+    "nextScan": "Next Scan",
+    "lastScan": "Last Scan",
+    "save": "Save Schedule",
+    "proFeature": "Pro Feature",
+    "proDescription": "Automatic scan scheduling is only available with the Pro plan.",
+    "upgradeButton": "Upgrade to Pro",
+    "emailSettings": "Email Settings",
+    "emailEnabled": "Enable email notifications",
+    "emailAddress": "Email address",
+    "emailHint": "Pre-filled with WordPress admin email (editable).",
+    "scheduleType": "Schedule Type",
+    "oneTime": "One Time",
+    "oneTimeHint": "Run at a specific date and time",
+    "recurring": "Recurring",
+    "recurringHint": "Repeat on a defined interval",
+    "selectDateTime": "Select date and time",
+    "timezone": "Timezone",
+    "repeatEvery": "Repeat every",
+    "days": "days",
+    "executionTime": "Execution time",
+    "createSchedule": "Create Schedule",
+    "activeSchedules": "Active Schedules",
+    "noActiveSchedules": "No active schedules.",
+    "createFirstSchedule": "Create your first schedule above.",
+    "nextExecution": "Next execution",
+    "pending": "Pending",
+    "inactive": "Inactive",
+    "active": "Active",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this schedule?",
+    "scheduleHistory": "Execution History",
+    "noHistory": "No execution history.",
+    "clearHistory": "Clear History",
+    "clearHistoryConfirm": "Clear all execution history?",
+    "executedAt": "Executed on",
+    "success": "Success",
+    "failed": "Failed",
+    "errorInvalidDays": "Invalid number of days",
+    "errorSelectDateTime": "Please choose a date/time",
+    "errorCreate": "Error while adding",
+    "errorUpdate": "Unable to update",
+    "errorDelete": "Error while deleting",
+    "errorLoad": "Error while loading",
+    "errorClearHistory": "Error while clearing history",
+    "scheduleDescriptions": {
+      "oneTime": "Once on {{date}}",
+      "recurring": "Every {{days}} days, at {{time}} ({{timezone}})",
+      "default": "Schedule"
+    },
+    "recurringEvery": "Every",
+    "daysAt": "days, at",
+    "notifyByEmail": "Notify by email",
+    "add": "Add",
+    "scheduled": "Scheduled tasks",
+    "nextRun": "Next run"
+  },
+  "subscription": {
+    "freePlan": "Free Plan",
+    "proPlan": "Pro Plan",
+    "upgrade": "Upgrade",
+    "upgradeToPro": "Upgrade to Pro",
+    "proFeature": "Pro Feature",
+    "proFeatures": "Unlimited scans • Unlimited URLs per scan",
+    "urlLimit": "Maximum {{max}} URLs per scan",
+    "unlockFeatures": "Unlock all features",
+    "expiresOn": "Expires on",
+    "resume": {
+      "button": "Resume subscription",
+      "processing": "Resuming...",
+      "success": "Your subscription has been successfully resumed.",
+      "error": "Error resuming the subscription. Please try again."
+    },
+    "cancelButton": "Cancel Subscription",
+    "cancel": {
+      "button": "Cancel subscription",
+      "confirmTitle": "Confirm cancellation",
+      "confirmMessage": "Are you sure you want to cancel your subscription? You will keep access to Pro features until the end of your current billing period.",
+      "processing": "Cancelling...",
+      "confirmYes": "Yes, cancel",
+      "confirmNo": "No, keep subscription",
+      "scheduledInfo": "⚠️ Your subscription will be cancelled at the end of the current billing period.",
+      "scheduledAlert": "Your subscription will be cancelled at the end of the current billing period.",
+      "error": "Error cancelling the subscription. Please try again."
+    },
+    "limits": {
+      "scansPerMonth": "Scans per month",
+      "linksPerScan": "Links per scan",
+      "historyRetention": "History retention",
+      "scheduling": "Auto scheduling",
+      "emailReports": "Email reports",
+      "priority": "Priority support"
+    },
+    "values": {
+      "unlimited": "Unlimited",
+      "days": "{{count}} days",
+      "included": "Included",
+      "notIncluded": "Not included"
+    }
+  },
+  "payment": {
+    "title": "Choose a Plan",
+    "subtitle": "Unlock the full potential of your WordPress link scanner",
+    "description": "Choose the plan that suits you",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "save": "Save {{percent}}%",
+    "selectPlan": "Select this plan",
+    "choosePlan": "Choose this plan",
+    "chooseFree": "Choose",
+    "processing": "Processing...",
+    "success": "Payment successful!",
+    "error": "Payment error",
+    "errorStart": "Unable to start payment for now.",
+    "errorLoadingPlans": "Unable to load plans",
+    "freePerMonth": "€0 / month",
+    "priceEurPerMonth": "€{{price}} / month",
+    "priceGenericPerMonth": "{{price}} {{currency}} / month",
+    "recommended": "Recommended",
+    "freeTitle": "Free",
+    "freePrice": "€0 / month",
+    "proTitle": "Pro",
+    "proPrice": "€7 / month",
+    "tryFree": "Try for free",
+    "upgradePro": "Upgrade to Pro",
+    "currentPlan": "Current plan",
+    "continueToPayment": "Continue to payment",
+    "compare": {
+      "features": {
+        "linkScans": "Link scans",
+        "detailedReports": "Detailed reports",
+        "scanHistory": "Scan history",
+        "scanScheduling": "Scan scheduling",
+        "emailDelivery": "Email delivery"
+      },
+      "proReports": "Advanced + PDF"
+    },
+    "modal": {
+      "title": "Payment",
+      "subtitle": "Enter your card information securely",
+      "missingKey": "Missing Stripe key. Set VITE_STRIPE_API_KEY in your .env.",
+      "chosenPlan": "Selected plan",
+      "cardInfo": "Card information",
+      "testCardHint": "Use a Stripe test card, e.g. 4242 4242 4242 4242",
+      "validateCard": "Validate card",
+      "validating": "Validating…",
+      "cardValidated": "Card validated — PaymentMethod: {{id}}"
+    },
+    "features": {
+      "limitedScan": "Limited scan (e.g. 100 links / scan)",
+      "basicHistory": "Basic history",
+      "unlimitedScans": "Unlimited scans",
+      "pdfReports": "PDF report generation",
+      "scheduledTasks": "Scheduled tasks (weekly cron)",
+      "prioritySupport": "Priority support"
+    },
+    "checkout": {
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "payAmount": "Pay {{amount}} {{currency}}"
+    }
+  },
+  "errors": {
+    "general": "An error occurred",
+    "network": "Network error",
+    "timeout": "Timeout exceeded",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Access forbidden",
+    "notFound": "Not found",
+    "serverError": "Server error",
+    "clearHistory": "Cleanup failed. Check the logs.",
+    "pdfDownload": "Unable to download the PDF right now."
+  },
+  "report": {
+    "title": "Link Scan Report",
+    "dateLabel": "Report date",
+    "sampleTitle": "Sample of links",
+    "downloadPdf": "Download PDF",
+    "downloading": "Downloading…",
+    "noScan": "No scan in progress"
+  },
+  "locale": "en-US"
+}

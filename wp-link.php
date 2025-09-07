@@ -1,16 +1,63 @@
 <?php
 /**
- * Plugin Name:       WP Link Scanner
+ * Plugin Name:       WP Link Fixer
  * Description:       Interface d'administration (React) pour scanner les liens d'un site WordPress. Cette v1 inclut uniquement le frontend.
  * Version:           0.1.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Your Name
- * Text Domain:       wp-link-scanner
+ * Text Domain:       wp-link-fixer
  */
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
+}
+
+// Hook d'activation du plugin
+register_activation_hook(__FILE__, 'wp_link_scanner_activate');
+
+function wp_link_scanner_activate()
+{
+    // Enregistrer l'utilisateur lors de l'activation du plugin
+    wp_link_scanner_register_user();
+}
+
+function wp_link_scanner_register_user()
+{
+    $admin_email = get_bloginfo('admin_email');
+    $site_url = home_url();
+
+    if (empty($admin_email)) {
+        return; // Pas d'email admin configuré
+    }
+
+    // URL de l'API (à configurer selon votre environnement)
+    $api_url = 'https://api.linkfixer.io/api/users/register';
+
+    $data = array(
+        'email' => $admin_email,
+        'site_url' => $site_url
+    );
+
+    $response = wp_remote_post($api_url, array(
+        'method' => 'POST',
+        'timeout' => 30,
+        'headers' => array(
+            'Content-Type' => 'application/json',
+        ),
+        'body' => json_encode($data)
+    ));
+
+    if (!is_wp_error($response)) {
+        $body = wp_remote_retrieve_body($response);
+        $result = json_decode($body, true);
+
+        if (isset($result['user']['api_key'])) {
+            // Stocker la clé API dans les options WordPress
+            update_option('wp_link_scanner_api_key', $result['user']['api_key']);
+            update_option('wp_link_scanner_user_id', $result['user']['id']);
+        }
+    }
 }
 
 if (!class_exists('WP_Link_Scanner')) {
@@ -18,7 +65,7 @@ if (!class_exists('WP_Link_Scanner')) {
     {
         private static $instance = null;
         private static $menu_hook = '';
-        private const SLUG = 'wp-link-scanner';
+        private const SLUG = 'wp-link-fixer';
 
         public static function instance()
         {
@@ -38,8 +85,8 @@ if (!class_exists('WP_Link_Scanner')) {
         {
             // Enregistre une page d'administration de premier niveau
             self::$menu_hook = add_menu_page(
-                __('WP Link Scanner', 'wp-link-scanner'),
-                __('WP Link Scanner', 'wp-link-scanner'),
+                __('WP Link Fixer', 'wp-link-fixer'),
+                __('WP Link Fixer', 'wp-link-fixer'),
                 'manage_options',
                 self::SLUG,
                 [$this, 'render_admin_page'],
@@ -66,7 +113,7 @@ if (!class_exists('WP_Link_Scanner')) {
                     break;
                 }
             }
-            $handle         = 'wp-link-scanner-app';
+            $handle = 'wp-link-fixer-app';
 
             // Lecture du manifest Vite pour récupérer les vrais noms de fichiers
             if (!empty($manifest_path) && file_exists($manifest_path)) {
@@ -90,12 +137,15 @@ if (!class_exists('WP_Link_Scanner')) {
                         }
                     }
 
-                    // Expose WordPress context to the frontend (admin email, site url)
+                    // Expose WordPress context to the frontend (admin email, site url, API key)
                     $admin_email = get_bloginfo('admin_email');
                     $site_url    = home_url();
+                    $api_key = get_option('wp_link_scanner_api_key', '');
                     wp_localize_script($handle, 'WPLS_SETTINGS', [
                         'adminEmail' => $admin_email,
                         'siteUrl'    => $site_url,
+                        'apiKey' => $api_key,
+                        'locale' => get_locale(),
                     ]);
                 } else {
                     // Fallback basique si manifest présent mais entrée absente
@@ -116,29 +166,32 @@ if (!class_exists('WP_Link_Scanner')) {
             if (!empty($js_files)) {
                 // Convertit le chemin disque en URL relative au plugin
                 $first_js = basename($js_files[0]);
-                wp_enqueue_script('wp-link-scanner-app', $build_url . 'assets/' . $first_js, [], null, true);
+                wp_enqueue_script('wp-link-fixer-app', $build_url . 'assets/' . $first_js, [], null, true);
 
                 // Expose WordPress context in fallback mode as well
                 $admin_email = get_bloginfo('admin_email');
                 $site_url    = home_url();
-                wp_localize_script('wp-link-scanner-app', 'WPLS_SETTINGS', [
+                $api_key = get_option('wp_link_scanner_api_key', '');
+                wp_localize_script('wp-link-fixer-app', 'WPLS_SETTINGS', [
                     'adminEmail' => $admin_email,
                     'siteUrl'    => $site_url,
+                    'apiKey' => $api_key,
+                    'locale' => get_locale(),
                 ]);
             }
 
             if (!empty($css_files)) {
                 $first_css = basename($css_files[0]);
-                wp_enqueue_style('wp-link-scanner-app-css', $build_url . 'assets/' . $first_css, [], null);
+                wp_enqueue_style('wp-link-fixer-app-css', $build_url . 'assets/' . $first_css, [], null);
             }
         }
 
         public function render_admin_page()
         {
             echo '<div class="wrap">';
-            echo '<h1 style="margin-bottom:16px">' . esc_html__('WP Link Scanner', 'wp-link-scanner') . '</h1>';
-            echo '<div id="wp-link-scanner-root" style="min-height: 500px;"></div>';
-            echo '<noscript>' . esc_html__('Veuillez activer JavaScript pour utiliser WP Link Scanner.', 'wp-link-scanner') . '</noscript>';
+            echo '<h1 style="margin-bottom:16px">' . esc_html__('WP Link Fixer', 'wp-link-fixer') . '</h1>';
+            echo '<div id="wp-link-fixer-root" style="min-height: 500px;"></div>';
+            echo '<noscript>' . esc_html__('Veuillez activer JavaScript pour utiliser WP Link Fixer.', 'wp-link-fixer') . '</noscript>';
             echo '</div>';
         }
     }

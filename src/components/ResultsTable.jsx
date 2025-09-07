@@ -1,15 +1,21 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import '../../styles/ResultsTable.scss';
 
 function StatusBadge({ status }) {
-  return <span className={`badge ${status}`}>{status}</span>;
+  const { t } = useTranslation();
+  const statusText = t(`results.status.${status}`);
+  return <span className={`badge ${status}`}>{statusText}</span>;
 }
 
 function TypeBadge({ type }) {
-  return <span className={`badge type-${type}`}>{type}</span>;
+  const { t } = useTranslation();
+  const typeText = t(`results.status.${type}`);
+  return <span className={`badge type-${type}`}>{typeText}</span>;
 }
 
 export default function ResultsTable({ items, total, filters, onChangeFilters }) {
+  const { t } = useTranslation();
   const set = (partial) => onChangeFilters(partial);
 
   const setSort = (key) => {
@@ -24,28 +30,28 @@ export default function ResultsTable({ items, total, filters, onChangeFilters })
   return (
     <div className="panel">
       <div className="panel-header">
-        <h3>Résultats</h3>
+        <h3>{t('results.title')}</h3>
         <p>
-          {items.length} résultats affichés sur {total}
+          {items.length} {t('results.resultsShown')} {total}
         </p>
       </div>
       <div className="panel-body">
         <div className="filters">
           <input
             type="search"
-            placeholder="Rechercher une URL ou source…"
+            placeholder={t('results.searchPlaceholder')}
             value={filters.search}
             onChange={(e) => set({ search: e.target.value })}
           />
           <select value={filters.type} onChange={(e) => set({ type: e.target.value })}>
-            <option value="all">Tous les types</option>
-            <option value="internal">Interne</option>
-            <option value="external">Externe</option>
+            <option value="all">{t('results.filters.all')}</option>
+            <option value="internal">{t('results.filters.internal')}</option>
+            <option value="external">{t('results.filters.external')}</option>
           </select>
           <select value={filters.status} onChange={(e) => set({ status: e.target.value })}>
-            <option value="all">Tous les statuts</option>
-            <option value="ok">OK</option>
-            <option value="broken">Cassé</option>
+            <option value="all">{t('results.filters.all')}</option>
+            <option value="ok">{t('results.filters.ok')}</option>
+            <option value="broken">{t('results.filters.broken')}</option>
           </select>
         </div>
 
@@ -54,17 +60,19 @@ export default function ResultsTable({ items, total, filters, onChangeFilters })
             <thead>
               <tr>
                 <th onClick={() => setSort('url')}>
-                  URL {filters.sortBy === 'url' ? (filters.sortDir === 'asc' ? '▲' : '▼') : ''}
+                  {t('results.table.url')}{' '}
+                  {filters.sortBy === 'url' ? (filters.sortDir === 'asc' ? '▲' : '▼') : ''}
                 </th>
                 <th onClick={() => setSort('type')}>
-                  Type {filters.sortBy === 'type' ? (filters.sortDir === 'asc' ? '▲' : '▼') : ''}
+                  {t('results.table.type')}{' '}
+                  {filters.sortBy === 'type' ? (filters.sortDir === 'asc' ? '▲' : '▼') : ''}
                 </th>
                 <th onClick={() => setSort('status')}>
-                  Statut{' '}
+                  {t('results.table.status')}{' '}
                   {filters.sortBy === 'status' ? (filters.sortDir === 'asc' ? '▲' : '▼') : ''}
                 </th>
                 <th onClick={() => setSort('source')}>
-                  Sources{' '}
+                  {t('results.table.foundOn')}{' '}
                   {filters.sortBy === 'source' ? (filters.sortDir === 'asc' ? '▲' : '▼') : ''}
                 </th>
               </tr>
@@ -89,22 +97,26 @@ export default function ResultsTable({ items, total, filters, onChangeFilters })
                   </td>
                   <td>
                     {l.sources ? (
-                      // Format groupé : affiche le nombre de sources et les premières
                       <div className="sources-grouped">
-                        <span className="source-count">{l.sourceCount} source{l.sourceCount > 1 ? 's' : ''}</span>
+                        <span className="source-count">
+                          {l.sourceCount} {t('results.sources', { count: l.sourceCount })}
+                        </span>
                         {l.sources.length > 0 && (
                           <div className="source-list">
                             {l.sources.slice(0, 3).map((source, idx) => (
-                              <div key={idx} className="source-item">{source}</div>
+                              <div key={idx} className="source-item">
+                                {source}
+                              </div>
                             ))}
                             {l.sources.length > 3 && (
-                              <div className="source-more">+ {l.sources.length - 3} autres</div>
+                              <div className="source-more">
+                                {t('results.moreOthers', { count: l.sources.length - 3 })}
+                              </div>
                             )}
                           </div>
                         )}
                       </div>
                     ) : (
-                      // Format legacy : une seule source
                       l.source
                     )}
                   </td>
@@ -113,7 +125,7 @@ export default function ResultsTable({ items, total, filters, onChangeFilters })
               {items.length === 0 && (
                 <tr>
                   <td colSpan={4} className="empty">
-                    Aucun résultat.
+                    {t('results.noResults')}
                   </td>
                 </tr>
               )}

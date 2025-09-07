@@ -67,15 +67,20 @@ export default function App() {
       const pollResults = async () => {
         try {
           const scanStatus = await getScan(scanData.id);
+          console.log('Poll: Scan status:', scanStatus.status, 'for ID:', scanData.id);
 
           // Récupérer les liens scannés
           const results = await getScanResults(scanData.id, { perPage: 1000 });
           setLinks(results.items || []);
+          console.log('Poll: Found', results.items?.length || 0, 'links');
 
           // Si le scan n'est pas terminé, continuer le polling
           if (scanStatus.status === 'running' || scanStatus.status === 'pending') {
+            console.log('Poll: Continuing polling in 2s...');
             setTimeout(pollResults, 2000); // Vérifier toutes les 2 secondes
           } else {
+            // Scan terminé (completed, cancelled, ou autre statut)
+            console.log('Poll: Scan finished with status:', scanStatus.status);
             setScanning(false);
           }
         } catch (error) {

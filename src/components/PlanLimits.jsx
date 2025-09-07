@@ -1,7 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSubscription } from '../hooks/useSubscription.js';
 
 export default function PlanLimits({ onUpgrade }) {
+  const { t } = useTranslation();
   const { isPro, isFree, maxUrlsPerScan } = useSubscription();
 
   if (isPro) {
@@ -9,10 +11,10 @@ export default function PlanLimits({ onUpgrade }) {
       <div className="plan-limits plan-limits--pro">
         <div className="plan-badge plan-badge--pro">
           <span className="icon">⭐</span>
-          <span>Plan Pro</span>
+          <span>{t('subscription.proPlan')}</span>
         </div>
         <div className="plan-info">
-          <p>Scans illimités • URLs illimitées par scan</p>
+          <p>{t('subscription.proFeatures')}</p>
         </div>
       </div>
     );
@@ -22,21 +24,17 @@ export default function PlanLimits({ onUpgrade }) {
     <div className="plan-limits plan-limits--free">
       <div className="plan-badge plan-badge--free">
         <span className="icon">🔒</span>
-        <span>Plan Gratuit</span>
+        <span>{t('subscription.freePlan')}</span>
       </div>
-      
+
       <div className="plan-info">
         <div className="urls-limit">
-          <span className="limit-text">Maximum {maxUrlsPerScan} URLs par scan</span>
+          <span className="limit-text">{t('subscription.urlLimit', { max: maxUrlsPerScan })}</span>
         </div>
       </div>
 
-      <button 
-        className="btn-upgrade" 
-        onClick={onUpgrade}
-        type="button"
-      >
-        Passer au Pro
+      <button className="btn-upgrade" onClick={onUpgrade} type="button">
+        {t('subscription.upgradeToPro')}
       </button>
     </div>
   );
