@@ -24,6 +24,7 @@
     "dashboard": "Dashboard",
     "history": "History",
     "settings": "Settings",
+    "privacy": "Privacy Policy",
     "scheduler": "Scheduler"
   },
   "dashboard": {
@@ -242,6 +243,51 @@
       "days": "{{count}} days",
       "included": "Included",
       "notIncluded": "Not included"
+  }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdatedLabel": "Last updated",
+    "lastUpdatedDate": "September 4, 2024",
+    "intro": "We care about protecting your personal data. This policy explains what data is processed by the plugin, for what purpose and what your rights are.",
+    "contactEmail": "pro@linkfixer.io",
+    "sections": {
+      "responsable": {
+        "title": "Data Controller",
+        "body": "The data controller is the publisher of the Link Fixer plugin. This plugin runs within your WordPress site and does not collect data without your action."
+      },
+      "data": {
+        "title": "Data processed",
+        "p1": "When scanning links, the plugin processes URLs, HTTP response statuses (e.g., 200, 404, redirects), locations where links are found (posts, pages, menus, widgets) and verification timestamps.",
+        "p2": "If you enable PDF export or email sending (if available in your plan), the information required for these features is also used to generate and deliver reports."
+      },
+      "purposes": {
+        "title": "Purposes and legal basis",
+        "body": "Data is processed to identify broken links and improve your site quality (legitimate interest in proper operation and maintenance of the site)."
+      },
+      "retention": {
+        "title": "Retention",
+        "body": "Scan history (if enabled) is stored locally in your WordPress installation according to your settings. You can purge it at any time from the plugin interface."
+      },
+      "sharing": {
+        "title": "Sharing and transfers",
+        "body": "Data processed by the plugin remains in your WordPress environment. No data is shared with third parties unless you explicitly choose to use external services (payments, emails) under their terms."
+      },
+      "rights": {
+        "title": "Your rights",
+        "intro": "Under the GDPR, you have the following rights:",
+        "list": [
+          "Right of access to your data",
+          "Right to rectification if inaccurate",
+          "Right to object to processing",
+          "Right to erasure (within legal limits)"
+        ],
+        "outro": "To exercise your rights, use the contact details provided by the plugin publisher."
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "For any questions about this policy or your data, you can reach us at:"
+      }
     }
   },
   "payment": {
@@ -266,7 +312,7 @@
     "freeTitle": "Free",
     "freePrice": "€0 / month",
     "proTitle": "Pro",
-    "proPrice": "€7 / month",
+    "proPrice": "€5 / month",
     "tryFree": "Try for free",
     "upgradePro": "Upgrade to Pro",
     "currentPlan": "Current plan",

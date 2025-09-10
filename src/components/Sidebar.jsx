@@ -66,6 +66,13 @@ export default function Sidebar({ active = 'dashboard', onNavigate }) {
         >
           {t('navigation.settings')}
         </a>
+        <a
+          className={`item ${active === 'privacy' ? 'active' : ''}`}
+          href="#privacy"
+          onClick={nav('privacy')}
+        >
+          {t('navigation.privacy')}
+        </a>
       </nav>
     </aside>
   );

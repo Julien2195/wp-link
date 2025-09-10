@@ -1,0 +1,57 @@
+@use './_variables.scss' as *;
+
+.privacy-policy {
+  .panel-header {
+    h3 {
+      margin: 0 0 4px 0;
+    }
+    .meta {
+      margin: 0;
+      font-size: 12px;
+      color: color-mix(in srgb, var(--color-text) 70%, transparent);
+    }
+  }
+
+  .panel-body {
+    line-height: 1.7;
+  }
+
+  .pp-section {
+    margin-bottom: $space;
+  }
+
+  h4 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  p {
+    margin: 0 0 8px 0;
+    color: var(--color-text);
+  }
+
+  ul {
+    margin: 8px 0 8px 0;
+    padding-left: 18px;
+    li { margin: 6px 0; color: var(--color-text); }
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+    border-bottom: 1px dashed color-mix(in srgb, var(--color-primary) 40%, transparent);
+    transition: color 120ms ease, border-color 120ms ease;
+  }
+  a:hover { text-decoration: underline; }
+
+  .pp-contact {
+    padding: 12px 14px;
+    border-radius: $radius-sm;
+    border: 1px solid color-mix(in srgb, var(--color-primary) 40%, var(--color-border));
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    .email { font-weight: 600; }
+  }
+}
+

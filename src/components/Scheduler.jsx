@@ -363,6 +363,7 @@ export default function Scheduler({ onUpgrade }) {
           type: 'one_time',
           runAt: runAtLocalString, // Heure locale, pas UTC
           timezone,
+          locale: i18n.language || 'en',
           active: true,
           site,
           // Email preferences (server will ignore for now; kept for future)
@@ -379,6 +380,7 @@ export default function Scheduler({ onUpgrade }) {
           everyDays: Number(everyDays),
           time,
           timezone,
+          locale: i18n.language || 'en',
           active: true,
           site,
           notify: !!emailEnabled,
