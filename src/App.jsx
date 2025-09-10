@@ -7,6 +7,7 @@ import StatsCards from './components/StatsCards.jsx';
 import ResultsTable from './components/ResultsTable.jsx';
 import History from './components/History.jsx';
 import Settings from './components/Settings.jsx';
+import PrivacyPolicy from './components/PrivacyPolicy.jsx';
 import Scheduler from './components/Scheduler.jsx';
 import UnlockButton from './components/UnlockButton.jsx';
 import UpgradeModal from './components/UpgradeModal.jsx';
@@ -20,7 +21,7 @@ export default function App() {
   const [links, setLinks] = useState([]);
   const [scanning, setScanning] = useState(false);
   const [currentScanId, setCurrentScanId] = useState(null);
-  const [route, setRoute] = useState('dashboard'); // dashboard | history | settings | scheduler
+  const [route, setRoute] = useState('dashboard'); // dashboard | history | settings | scheduler | privacy
   const [filters, setFilters] = useState({
     search: '',
     type: 'all', // all | internal | external
@@ -198,6 +199,12 @@ export default function App() {
         {route === 'settings' && (
           <div className="section">
             <Settings theme={theme} onChangeTheme={setTheme} />
+          </div>
+        )}
+
+        {route === 'privacy' && (
+          <div className="section">
+            <PrivacyPolicy />
           </div>
         )}
 

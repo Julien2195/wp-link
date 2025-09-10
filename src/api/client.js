@@ -22,6 +22,12 @@ api.interceptors.request.use((config) => {
     if (token) {
       config.headers = { ...config.headers, Authorization: `Bearer ${token}` };
     }
+
+    // Attach current UI locale for backend translations
+    const lang = localStorage.getItem('wpls.language');
+    if (lang && (lang === 'en' || lang === 'fr')) {
+      config.headers = { ...config.headers, 'X-Locale': lang };
+    }
   } catch (_) {
     // ignore
   }
@@ -55,4 +61,3 @@ api.interceptors.request.use((config) => {
 });
 
 export default api;
-
