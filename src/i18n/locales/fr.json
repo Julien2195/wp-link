@@ -24,6 +24,7 @@
     "dashboard": "Tableau de bord",
     "history": "Historique",
     "settings": "Paramètres",
+    "privacy": "Politique de confidentialité",
     "scheduler": "Planificateur"
   },
   "dashboard": {
@@ -242,6 +243,51 @@
       "days": "{{count}} jours",
       "included": "Inclus",
       "notIncluded": "Non inclus"
+  }
+  },
+  "privacy": {
+    "title": "Politique de confidentialité",
+    "lastUpdatedLabel": "Dernière mise à jour",
+    "lastUpdatedDate": "4 septembre 2024",
+    "intro": "Nous attachons une grande importance à la protection de vos données personnelles. Cette politique explique quelles données sont traitées par le plugin, dans quel but et quels sont vos droits.",
+    "contactEmail": "pro@linkfixer.io",
+    "sections": {
+      "responsable": {
+        "title": "Responsable du traitement",
+        "body": "Le responsable du traitement est l’éditeur du plugin Link Fixer. Ce plugin fonctionne au sein de votre site WordPress et ne collecte pas de données sans action de votre part."
+      },
+      "data": {
+        "title": "Données traitées",
+        "p1": "Lors d’un scan des liens, le plugin traite les URLs, les statuts de réponse HTTP (ex. 200, 404, redirections), les emplacements où les liens sont trouvés (articles, pages, menus, widgets) ainsi que les horodatages de vérification.",
+        "p2": "Si vous activez l’export PDF ou l’envoi d’e-mails (si disponible dans votre plan), les informations nécessaires à ces fonctionnalités sont également utilisées pour générer et transmettre les rapports."
+      },
+      "purposes": {
+        "title": "Finalités et base légale",
+        "body": "Les données sont traitées dans le but d’identifier les liens cassés et d’améliorer la qualité de votre site (intérêt légitime au bon fonctionnement et à la maintenance du site)."
+      },
+      "retention": {
+        "title": "Conservation",
+        "body": "L’historique de scans (si activé) est conservé localement dans votre installation WordPress selon vos réglages. Vous pouvez le purger à tout moment depuis l’interface du plugin."
+      },
+      "sharing": {
+        "title": "Partage et transferts",
+        "body": "Les données traitées par le plugin restent dans votre environnement WordPress. Aucune donnée n’est transmise à des tiers sauf si vous choisissez explicitement d’utiliser des services externes (paiement, e-mails) selon leurs conditions."
+      },
+      "rights": {
+        "title": "Vos droits",
+        "intro": "Conformément au RGPD, vous disposez notamment des droits suivants :",
+        "list": [
+          "Droit d’accès aux données vous concernant",
+          "Droit de rectification en cas d’inexactitude",
+          "Droit d’opposition au traitement",
+          "Droit à l’effacement (dans les limites légales)"
+        ],
+        "outro": "Pour exercer vos droits, utilisez les moyens de contact fournis par l’éditeur du plugin."
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "Pour toute question relative à cette politique ou à vos données, vous pouvez nous joindre à l’adresse suivante :"
+      }
     }
   },
   "payment": {
@@ -266,7 +312,7 @@
     "freeTitle": "Gratuit",
     "freePrice": "0 € / mois",
     "proTitle": "Pro",
-    "proPrice": "7 € / mois",
+    "proPrice": "5 € / mois",
     "tryFree": "Essayer gratuitement",
     "upgradePro": "Passer en Pro",
     "currentPlan": "Plan actuel",
