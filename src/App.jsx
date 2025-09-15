@@ -1,21 +1,25 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, Suspense, lazy } from 'react';
 import { useSubscription } from './hooks/useSubscription.js';
 import Sidebar from './components/Sidebar.jsx';
 import Header from './components/Header.jsx';
 import ScanForm from './components/ScanForm.jsx';
 import StatsCards from './components/StatsCards.jsx';
 import ResultsTable from './components/ResultsTable.jsx';
-import History from './components/History.jsx';
-import Settings from './components/Settings.jsx';
-import Scheduler from './components/Scheduler.jsx';
+const History = lazy(() => import('./components/History.jsx'));
+const Settings = lazy(() => import('./components/Settings.jsx'));
+const Scheduler = lazy(() => import('./components/Scheduler.jsx'));
 import UnlockButton from './components/UnlockButton.jsx';
-import UpgradeModal from './components/UpgradeModal.jsx';
-import PaymentModal from './components/PaymentModal.jsx';
-import { createEmbeddedCheckoutSession, createHostedCheckoutSession } from './api/endpoints.js';
-import ReportPreview from './components/ReportPreview.jsx';
+const UpgradeModal = lazy(() => import('./components/UpgradeModal.jsx'));
+const PaymentModal = lazy(() => import('./components/PaymentModal.jsx'));
+import { createEmbeddedCheckoutSession, createHostedCheckoutSession, getConnectionStatus, connectAccount, getUserProfile } from './api/endpoints.js';
+import { BASE_URL } from './api/client.js';
+const ReportPreview = lazy(() => import('./components/ReportPreview.jsx'));
 import { startScan as apiStartScan, getScan, getScanResults } from './api/endpoints.js';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from './components/LanguageSelector.jsx';
 
 export default function App() {
+  const { t } = useTranslation();
   const { refresh: refreshSubscription, isPro, isFree, subscription } = useSubscription();
   const [links, setLinks] = useState([]);
   const [scanning, setScanning] = useState(false);
@@ -45,12 +49,68 @@ export default function App() {
 
   const effectiveTheme = theme === 'system' ? getSystemTheme() : theme;
 
+  // Connection gate: require explicit opt-in before enabling features
+  const [checkingConn, setCheckingConn] = useState(true);
+  const [connected, setConnected] = useState(false);
+  const [connecting, setConnecting] = useState(false);
+  const [connectError, setConnectError] = useState(null);
+
+  // Force consent screen if URL hash requests it (e.g., after account deletion)
+  const [forceConsent, setForceConsent] = useState(() =>
+    (typeof window !== 'undefined' && window.location?.hash === '#lf-consent')
+  );
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onHashChange = () => setForceConsent(window.location.hash === '#lf-consent');
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { connected } = await getConnectionStatus();
+        if (mounted) setConnected(!!connected);
+      } catch (_) {
+        if (mounted) setConnected(false);
+      } finally {
+        if (mounted) setCheckingConn(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
   const startScan = async () => {
     if (scanning) return;
     setScanning(true);
     setLinks([]);
 
     try {
+      // Debug: log user context just before starting scan
+      try {
+        console.groupCollapsed('[LinkFixer] StartScan: user context');
+        console.log('Connected:', connected);
+        console.log('Subscription:', subscription);
+        console.log('API Base URL:', BASE_URL);
+        if (typeof window !== 'undefined') {
+          console.log('Location origin:', window.location?.origin);
+          console.log('LINK_FIXER_SETTINGS present:', !!window.LINK_FIXER_SETTINGS);
+          if (window.LINK_FIXER_SETTINGS) {
+            const { locale, restUrl } = window.LINK_FIXER_SETTINGS;
+            console.log('LINK_FIXER_SETTINGS:', { locale, restUrl });
+          }
+        }
+        try {
+          const profile = await getUserProfile();
+          console.log('User profile:', profile?.user || profile);
+        } catch (e) {
+          console.warn('Could not fetch user profile (non-fatal):', e?.response?.status || e?.message || e);
+        }
+      } finally {
+        console.groupEnd?.();
+      }
+
       // Démarrer le scan via l'API
       const scanData = await apiStartScan({
         site:
@@ -133,6 +193,97 @@ export default function App() {
   const [showPayment, setShowPayment] = useState(false);
   const [checkoutSecret, setCheckoutSecret] = useState(null);
 
+  // Gate screen while not connected
+  if (checkingConn && !forceConsent) {
+    return (
+      <div className={`wp-link-app theme-${effectiveTheme}`}>
+        <main className="content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+          <div className="panel" style={{ width: 'min(900px, 96vw)' }}>
+            <div className="panel-body">{t('common.loading')}</div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (forceConsent || !connected) {
+    return (
+      <div
+        className={`wp-link-app theme-${effectiveTheme}`}
+        style={{ display: 'flex', justifyContent: 'center' }}
+      >
+        <main
+          className="content"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '80vh',
+          }}
+        >
+          <div className="panel" style={{ width: 'min(920px, 96vw)' }}>
+            <div
+              className="panel-header"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+            >
+              <div>
+                <h3 style={{ margin: 0, textAlign: 'center'}}>{t('connection.title')}</h3>
+                <p className="subtitle" style={{ margin: '15px 0 0 0' }}>
+                  {t('connection.description')}
+                </p>
+              </div>
+              <LanguageSelector />
+            </div>
+            <div
+              className="panel-body"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: 12,
+              }}
+            >
+              {connectError && (
+                <div style={{ color: 'var(--color-danger)', marginBottom: 12 }}>
+                  {t('connection.error')}
+                </div>
+              )}
+              <button
+                className="btn primary large"
+                disabled={connecting}
+                onClick={async () => {
+                  setConnecting(true);
+                  setConnectError(null);
+                  try {
+                    await connectAccount();
+                    setConnected(true);
+                    // refresh subscription and state shortly after connect
+                    setTimeout(() => refreshSubscription(), 300);
+                    // Clear forced-consent hash to reveal full app
+                    if (typeof window !== 'undefined' && window.location?.hash === '#lf-consent') {
+                      try {
+                        const { pathname, search } = window.location;
+                        window.history?.replaceState(null, '', pathname + search);
+                        setForceConsent(false);
+                      } catch (_) {}
+                    }
+                  } catch (e) {
+                    setConnectError(true);
+                  } finally {
+                    setConnecting(false);
+                  }
+                }}
+              >
+                {connecting ? t('common.loading') : t('connection.connectButton')}
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className={`wp-link-app theme-${effectiveTheme}`}>
       <Sidebar active={route} onNavigate={setRoute} />
@@ -185,26 +336,33 @@ export default function App() {
 
         {route === 'history' && (
           <div className="section">
-            <History onUpgrade={() => setShowUpgrade(true)} />
+            <Suspense fallback={<div className="panel"><div className="panel-body">{t('common.loading')}</div></div>}>
+              <History onUpgrade={() => setShowUpgrade(true)} />
+            </Suspense>
           </div>
         )}
 
         {route === 'scheduler' && (
           <div className="section">
-            <Scheduler onUpgrade={() => setShowUpgrade(true)} />
+            <Suspense fallback={<div className="panel"><div className="panel-body">{t('common.loading')}</div></div>}>
+              <Scheduler onUpgrade={() => setShowUpgrade(true)} isDark={effectiveTheme === 'dark'} />
+            </Suspense>
           </div>
         )}
 
         {route === 'settings' && (
           <div className="section">
-            <Settings theme={theme} onChangeTheme={setTheme} />
+            <Suspense fallback={<div className="panel"><div className="panel-body">{t('common.loading')}</div></div>}>
+              <Settings theme={theme} onChangeTheme={setTheme} />
+            </Suspense>
           </div>
         )}
 
         {/* Plans section removed */}
 
         {showUpgrade && (
-          <UpgradeModal
+          <Suspense fallback={null}>
+            <UpgradeModal
             open={showUpgrade}
             onClose={() => setShowUpgrade(false)}
             onProceedPayment={async (plan) => {
@@ -255,27 +413,32 @@ export default function App() {
               // 3) No client-only fallback. Report error.
               alert('Impossible de démarrer le paiement pour le moment.');
             }}
-          />
+            />
+          </Suspense>
         )}
 
         {showPayment && (
-          <PaymentModal
+          <Suspense fallback={null}>
+            <PaymentModal
             open={showPayment}
             onClose={() => {
               setShowPayment(false);
               setCheckoutSecret(null);
             }}
             checkoutClientSecret={checkoutSecret}
-          />
+            />
+          </Suspense>
         )}
 
         {showReport && (
-          <ReportPreview
+          <Suspense fallback={null}>
+            <ReportPreview
             stats={stats}
             items={filtered}
             scanId={currentScanId}
             onClose={() => setShowReport(false)}
-          />
+            />
+          </Suspense>
         )}
       </main>
     </div>

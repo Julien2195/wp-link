@@ -1,5 +1,33 @@
 import api from './client';
 
+// Explicit opt-in: connect WP site to remote service and store API key on server
+export async function connectAccount() {
+  const { data } = await api.post('/connect');
+  return data; // { ok: true }
+}
+
+// Check connection status (whether API key exists server-side)
+export async function getConnectionStatus() {
+  const { data } = await api.get('/status');
+  return data; // { connected: boolean }
+}
+
+export async function disconnectAccount() {
+  const { data } = await api.post('/disconnect');
+  return data; // { ok: true }
+}
+
+export async function deleteAccount() {
+  const { data } = await api.delete('/delete-account');
+  return data; // { ok: true }
+}
+
+// User profile (debug/user context)
+export async function getUserProfile() {
+  const { data } = await api.get('/users/profile');
+  return data; // { user: { id, email, plan, apiKey?, ... } }
+}
+
 // Healthcheck
 export async function getHealth() {
   const { data } = await api.get('/health');
@@ -79,13 +107,15 @@ export async function updateSubscription(plan) {
 }
 
 export async function cancelSubscription() {
-    const { data } = await api.post('/me/subscription/cancel');
-    return data;
+  // Backend expects a single endpoint with plan='free' to schedule cancellation
+  const { data } = await api.post('/me/subscription', { plan: 'free' });
+  return data;
 }
 
 export async function resumeSubscription() {
-    const { data } = await api.post('/me/subscription/resume');
-    return data;
+  // Backend expects a single endpoint with action='resume' to revert cancellation
+  const { data } = await api.post('/me/subscription', { action: 'resume' });
+  return data;
 }
 
 // Billing — create an Embedded Checkout session (client_secret)

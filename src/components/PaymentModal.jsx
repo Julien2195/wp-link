@@ -110,8 +110,9 @@ export default function PaymentModal({ open, onClose, plan = 'pro', checkoutClie
       role="dialog"
       aria-label={t('payment.modal.title')}
       onMouseDown={(e) => { if (e.target === backdropRef.current) onClose?.(); }}
+      style={{ overflowY: 'auto' }}
     >
-      <div className="modal" style={{ maxWidth: 560 }}>
+      <div className="modal payment-modal" style={{ width: 'min(560px, 96vw)' }}>
         <button className="modal__close" onClick={onClose} aria-label={t('common.close')}>✕</button>
         <div className="modal__header">
           <h3 className="modal__title">{t('payment.modal.title')}</h3>
@@ -125,7 +126,9 @@ export default function PaymentModal({ open, onClose, plan = 'pro', checkoutClie
           ) : checkoutClientSecret ? (
             // Embedded Checkout (EmbeddedCheckoutProvider + EmbeddedCheckout)
             <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret: checkoutClientSecret }}>
-              <EmbeddedCheckout />
+              <div style={{ minHeight: 600 }}>
+                <EmbeddedCheckout />
+              </div>
             </EmbeddedCheckoutProvider>
           ) : (
             // Fallback simple card form (PaymentMethod only)

@@ -24,7 +24,8 @@
     "dashboard": "Dashboard",
     "history": "History",
     "settings": "Settings",
-    "scheduler": "Scheduler"
+    "scheduler": "Scheduler",
+    "privacy": "Privacy Policy"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -266,7 +267,7 @@
     "freeTitle": "Free",
     "freePrice": "€0 / month",
     "proTitle": "Pro",
-    "proPrice": "€7 / month",
+    "proPrice": "€5 / month",
     "tryFree": "Try for free",
     "upgradePro": "Upgrade to Pro",
     "currentPlan": "Current plan",
@@ -305,6 +306,19 @@
       "emailPlaceholder": "you@example.com",
       "payAmount": "Pay {{amount}} {{currency}}"
     }
+  },
+  "connection": {
+    "title": "Connect to LinkFixer Cloud",
+    "description": "Before using the scanner, connect your site to LinkFixer Cloud to enable features. This action registers your site and generates an access key (no data is shared without your consent).",
+    "connectButton": "Connect",
+    "statusTitle": "Connection status",
+    "connected": "Connected",
+    "notConnected": "Not connected",
+    "error": "Connection failed. Please try again.",
+    "disconnectButton": "Delete account",
+    "disconnectConfirm": "Do you really want to delete the linked account and disconnect? You will need to reconnect to use the service.",
+    "disconnectSuccess": "Account removed locally. You are disconnected.",
+    "disconnectError": "Failed to remove account. Please try again."
   },
   "errors": {
     "general": "An error occurred",

@@ -24,7 +24,8 @@
     "dashboard": "Tableau de bord",
     "history": "Historique",
     "settings": "Paramètres",
-    "scheduler": "Planificateur"
+    "scheduler": "Planificateur",
+    "privacy": "Politique de confidentialité"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -266,7 +267,7 @@
     "freeTitle": "Gratuit",
     "freePrice": "0 € / mois",
     "proTitle": "Pro",
-    "proPrice": "7 € / mois",
+    "proPrice": "5 € / mois",
     "tryFree": "Essayer gratuitement",
     "upgradePro": "Passer en Pro",
     "currentPlan": "Plan actuel",
@@ -305,6 +306,19 @@
       "emailPlaceholder": "vous@example.com",
       "payAmount": "Payer {{amount}} {{currency}}"
     }
+  },
+  "connection": {
+    "title": "Se connecter à LinkFixer Cloud",
+    "description": "Avant d'utiliser le scanner, connectez votre site à LinkFixer Cloud pour activer les fonctionnalités. Cette action enregistre votre site et génère une clé d'accès (aucune donnée n'est partagée sans votre accord).",
+    "connectButton": "Se connecter",
+    "statusTitle": "État de la connexion",
+    "connected": "Connecté",
+    "notConnected": "Non connecté",
+    "error": "La connexion a échoué. Veuillez réessayer.",
+    "disconnectButton": "Supprimer le compte",
+    "disconnectConfirm": "Voulez-vous vraiment supprimer le compte lié et vous déconnecter ? Vous devrez vous reconnecter pour utiliser le service.",
+    "disconnectSuccess": "Compte supprimé localement. Vous êtes déconnecté.",
+    "disconnectError": "Échec de la suppression. Veuillez réessayer."
   },
   "errors": {
     "general": "Une erreur s'est produite",

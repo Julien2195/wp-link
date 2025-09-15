@@ -14,9 +14,18 @@ export default function ReportPreview({ stats, items, onClose, scanId }) {
       const response = await downloadScanReport(scanId);
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
+      // Récupère le nom du fichier depuis l'en-tête Content-Disposition
+      let filename = `scan-${scanId}-report.pdf`;
+      const disposition = response.headers['content-disposition'] || response.headers.get?.('content-disposition');
+      if (disposition) {
+        const match = disposition.match(/filename="?([^";]+)"?/);
+        if (match && match[1]) {
+          filename = match[1];
+        }
+      }
       const a = document.createElement('a');
       a.href = url;
-      a.download = `scan-${scanId}-report.pdf`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();

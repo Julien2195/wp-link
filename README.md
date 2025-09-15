@@ -1,6 +1,6 @@
-# WP Link Fixer (Frontend)
+# LinkFixer SEO (Frontend)
 
-Interface d’administration (React + Vite) pour le plugin WordPress « Link Fixer ».
+Interface d’administration (React + Vite) pour le plugin WordPress « LinkFixer SEO ».
 
 Cette v1 fournit seulement le frontend. Le backend (scan réel et API REST) pourra être ajouté ensuite.
 

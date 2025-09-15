@@ -1,11 +1,136 @@
 {
+  "_i18n-QcaxvB6C.js": {
+    "file": "assets/i18n-QcaxvB6C.js",
+    "name": "i18n",
+    "imports": [
+      "_react-BeQ55maS.js"
+    ]
+  },
+  "_mui-RVdzVS6v.js": {
+    "file": "assets/mui-RVdzVS6v.js",
+    "name": "mui",
+    "imports": [
+      "_react-BeQ55maS.js",
+      "_stripe-D3dkS7W0.js"
+    ]
+  },
+  "_react-BeQ55maS.js": {
+    "file": "assets/react-BeQ55maS.js",
+    "name": "react"
+  },
+  "_stripe-D3dkS7W0.js": {
+    "file": "assets/stripe-D3dkS7W0.js",
+    "name": "stripe",
+    "imports": [
+      "_react-BeQ55maS.js"
+    ]
+  },
+  "src/components/History.jsx": {
+    "file": "assets/History-B1G4FFrg.js",
+    "name": "History",
+    "src": "src/components/History.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_mui-RVdzVS6v.js",
+      "_react-BeQ55maS.js",
+      "src/main.jsx",
+      "src/components/ReportPreview.jsx",
+      "_i18n-QcaxvB6C.js",
+      "_stripe-D3dkS7W0.js"
+    ]
+  },
+  "src/components/PaymentModal.jsx": {
+    "file": "assets/PaymentModal-pzoYqiGN.js",
+    "name": "PaymentModal",
+    "src": "src/components/PaymentModal.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_mui-RVdzVS6v.js",
+      "_react-BeQ55maS.js",
+      "_stripe-D3dkS7W0.js",
+      "_i18n-QcaxvB6C.js"
+    ]
+  },
+  "src/components/ReportPreview.jsx": {
+    "file": "assets/ReportPreview-BDuBnspC.js",
+    "name": "ReportPreview",
+    "src": "src/components/ReportPreview.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_mui-RVdzVS6v.js",
+      "_react-BeQ55maS.js",
+      "src/main.jsx",
+      "_i18n-QcaxvB6C.js",
+      "_stripe-D3dkS7W0.js"
+    ]
+  },
+  "src/components/Scheduler.jsx": {
+    "file": "assets/Scheduler-CpjEOp72.js",
+    "name": "Scheduler",
+    "src": "src/components/Scheduler.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_mui-RVdzVS6v.js",
+      "_react-BeQ55maS.js",
+      "src/main.jsx",
+      "_i18n-QcaxvB6C.js",
+      "_stripe-D3dkS7W0.js"
+    ],
+    "css": [
+      "assets/Scheduler-B0vcOUI6.css"
+    ]
+  },
+  "src/components/Settings.jsx": {
+    "file": "assets/Settings-DLG2ijE6.js",
+    "name": "Settings",
+    "src": "src/components/Settings.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_mui-RVdzVS6v.js",
+      "_react-BeQ55maS.js",
+      "src/main.jsx",
+      "src/components/UpgradeModal.jsx",
+      "src/components/PaymentModal.jsx",
+      "_i18n-QcaxvB6C.js",
+      "_stripe-D3dkS7W0.js"
+    ]
+  },
+  "src/components/UpgradeModal.jsx": {
+    "file": "assets/UpgradeModal-T3dxpy-3.js",
+    "name": "UpgradeModal",
+    "src": "src/components/UpgradeModal.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_mui-RVdzVS6v.js",
+      "_react-BeQ55maS.js",
+      "_i18n-QcaxvB6C.js",
+      "_stripe-D3dkS7W0.js"
+    ],
+    "css": [
+      "assets/UpgradeModal-yGQzL2z4.css"
+    ]
+  },
   "src/main.jsx": {
-    "file": "assets/main-DgxnwvH3.js",
+    "file": "assets/main-zk8lyFQS.js",
     "name": "main",
     "src": "src/main.jsx",
     "isEntry": true,
+    "imports": [
+      "_mui-RVdzVS6v.js",
+      "_react-BeQ55maS.js",
+      "_i18n-QcaxvB6C.js",
+      "_stripe-D3dkS7W0.js"
+    ],
+    "dynamicImports": [
+      "src/components/History.jsx",
+      "src/components/Settings.jsx",
+      "src/components/Scheduler.jsx",
+      "src/components/UpgradeModal.jsx",
+      "src/components/PaymentModal.jsx",
+      "src/components/ReportPreview.jsx"
+    ],
     "css": [
-      "assets/main-CJHm7o8u.css"
+      "assets/main-D-zW0uV6.css"
     ]
   }
 }

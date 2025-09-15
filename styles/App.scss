@@ -140,19 +140,43 @@ background: rgba(0, 0, 0, 0.8);
 .modal {
   width: min(900px, 96vw);
   max-height: 90vh;
-  overflow: auto;
+  overflow: hidden; // allow inner body to scroll, not the container
+  display: flex;
+  flex-direction: column;
   background: var(--color-bg-elev);
   border: 1px solid var(--color-border);
   border-radius: 14px;
   box-shadow: var(--shadow);
 }
+.modal__header,
 .modal .modal-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: $space;
   border-bottom: 1px solid var(--color-border);
 }
-.modal .modal-body { padding: $space; }
-.modal .modal-actions { display: flex; gap: $space-sm; padding: $space; border-top: 1px solid var(--color-border); }
+.modal__body,
+.modal .modal-body {
+  padding: $space;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; // smooth on iOS
+  flex: 1 1 auto;
+}
+.modal__actions,
+.modal .modal-actions {
+  display: flex; gap: $space-sm; padding: $space; border-top: 1px solid var(--color-border);
+}
+
+// Ensure backdrop allows inner scroll on mobile
+.modal-backdrop { overscroll-behavior: contain; }
+
+// Payment modal: center title + subtitle vertically in header
+.payment-modal .modal__header,
+.payment-modal .modal-header {
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  gap: 6px;
+}
 
 // Upgrade comparison grid
 .upgrade-compare {
