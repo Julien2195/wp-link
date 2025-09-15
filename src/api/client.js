@@ -1,8 +1,11 @@
 import axios from 'axios';
 
-// Base URL configurable via Vite env (e.g. VITE_API_BASE_URL=https://api.local/api)
-// Fallback to '/api' so local backends at http://localhost:8000/api work by default
-export const BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
+// Prefer the WP REST proxy when running inside the WP plugin (LINK_FIXER_SETTINGS is localized by PHP).
+// This ensures sensitive traffic always goes through the server-side proxy and never to a remote base directly.
+const isWpPluginContext = typeof window !== 'undefined' && !!window.LINK_FIXER_SETTINGS;
+const PROXY_BASE = '/wp-json/link-fixer/v1';
+const ENV_BASE = import.meta.env.VITE_API_BASE_URL;
+export const BASE_URL = (isWpPluginContext ? PROXY_BASE : (ENV_BASE || PROXY_BASE)).replace(/\/$/, '');
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -10,14 +13,15 @@ const api = axios.create({
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
-  // Set to true if your backend uses cookies/session on same origin
-  withCredentials: false,
+  // Include cookies for WP REST cookie auth (same-origin)
+  withCredentials: true,
   timeout: 15000,
 });
 
-// Optional: attach auth/nonce if present (WordPress or custom bearer)
+// Optional: attach WordPress nonce if present (for REST auth),
+// avoid exposing or sending any custom API keys from the browser.
 api.interceptors.request.use((config) => {
-  try {
+try {
     const token = localStorage.getItem('wpls.token');
     if (token) {
       config.headers = { ...config.headers, Authorization: `Bearer ${token}` };
@@ -43,19 +47,6 @@ api.interceptors.request.use((config) => {
   if (wpNonce) {
     config.headers = { ...config.headers, 'X-WP-Nonce': wpNonce };
   }
-
-    // Ajouter les informations du site WordPress pour identifier l'utilisateur (en backup)
-    if (typeof window !== 'undefined' && window.WPLS_SETTINGS) {
-        const { adminEmail, siteUrl } = window.WPLS_SETTINGS;
-        if (adminEmail) {
-            config.headers = { ...config.headers, 'X-WP-User-Email': adminEmail };
-        }
-        if (siteUrl) {
-            config.headers = { ...config.headers, 'X-WP-Site-URL': siteUrl };
-        }
-    } else {
-        console.error('WPLS_SETTINGS not found:', window.WPLS_SETTINGS);
-    }
 
   return config;
 });

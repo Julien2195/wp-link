@@ -169,7 +169,7 @@ function computeNextRun(s) {
   return null;
 }
 
-export default function Scheduler({ onUpgrade }) {
+export default function Scheduler({ onUpgrade, isDark }) {
   const { t, i18n } = useTranslation();
   const { canAccessFeature, isFree, isPro, subscription } = useSubscription();
   const [items, setItems] = useState([]);
@@ -207,8 +207,8 @@ export default function Scheduler({ onUpgrade }) {
 
   // Email settings (pre-filled from WP admin email; editable)
   const defaultAdminEmail =
-    typeof window !== 'undefined' && window.WPLS_SETTINGS && window.WPLS_SETTINGS.adminEmail
-      ? window.WPLS_SETTINGS.adminEmail
+    typeof window !== 'undefined' && window.LINK_FIXER_SETTINGS && window.LINK_FIXER_SETTINGS.adminEmail
+      ? window.LINK_FIXER_SETTINGS.adminEmail
       : '';
 
   const [emailEnabled, setEmailEnabled] = useState(() => {
@@ -226,39 +226,38 @@ export default function Scheduler({ onUpgrade }) {
     }
   });
 
-  // Détection du thème
+  // Détection du thème — contrôlée par prop si fournie, sinon fallback local
+  const isDarkProp = typeof isDark === 'boolean' ? isDark : null;
   const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (isDarkProp !== null) return isDarkProp;
     const savedTheme = localStorage.getItem('wpls.theme');
     if (savedTheme === 'dark') return true;
     if (savedTheme === 'light') return false;
-    // Pour 'system' ou non défini, utiliser la préférence système
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
-  // Surveiller les changements de thème
+  // Suivre la prop en priorité (mise à jour instantanée depuis App)
   useEffect(() => {
+    if (isDarkProp !== null) {
+      setIsDarkMode(isDarkProp);
+    }
+  }, [isDarkProp]);
+
+  // Fallback: surveiller préférences système uniquement si pas de prop
+  useEffect(() => {
+    if (isDarkProp !== null) return; // App pilote le thème
+
     const handleThemeChange = () => {
       const savedTheme = localStorage.getItem('wpls.theme');
       if (savedTheme === 'dark') setIsDarkMode(true);
       else if (savedTheme === 'light') setIsDarkMode(false);
-      else
-        setIsDarkMode(
-          window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
-        );
+      else setIsDarkMode(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
     };
 
-    // Écouter les changements de localStorage
-    window.addEventListener('storage', handleThemeChange);
-
-    // Écouter les changements de préférence système
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     mediaQuery.addEventListener('change', handleThemeChange);
-
-    return () => {
-      window.removeEventListener('storage', handleThemeChange);
-      mediaQuery.removeEventListener('change', handleThemeChange);
-    };
-  }, []);
+    return () => mediaQuery.removeEventListener('change', handleThemeChange);
+  }, [isDarkProp]);
 
   const [type, setType] = useState('one_time'); // one_time | recurring
   const [runAt, setRunAt] = useState(null); // dayjs or null
@@ -504,6 +503,7 @@ export default function Scheduler({ onUpgrade }) {
                     <ThemeProvider theme={createAppTheme(isDarkMode)}>
                       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={i18n.language || 'en'}>
                         <DateTimePicker
+                          key={`dtp-${isDarkMode ? 'dark' : 'light'}`}
                           value={runAt}
                           onChange={(val) => setRunAt(val)}
                           minDateTime={dayjs()}
@@ -617,7 +617,7 @@ export default function Scheduler({ onUpgrade }) {
           )}
         </div>
 
-        {/* Historique */}
+        {/* Historique (affiché pour tous les utilisateurs s'il existe) */}
         {historySchedules.length > 0 && (
           <div className="schedule-list history">
             <div

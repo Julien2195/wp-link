@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import UnlockButton from './UnlockButton.jsx';
 import UpgradeModal from './UpgradeModal.jsx';
 import PaymentModal from './PaymentModal.jsx';
 import CancelSubscriptionButton from './CancelSubscriptionButton.jsx';
 import LanguageSelector from './LanguageSelector.jsx';
-import { createEmbeddedCheckoutSession, createHostedCheckoutSession } from '../api/endpoints.js';
+import { createEmbeddedCheckoutSession, createHostedCheckoutSession, getConnectionStatus, connectAccount, deleteAccount } from '../api/endpoints.js';
 import { useSubscription } from '../hooks/useSubscription.js';
-import Scheduler from './Scheduler.jsx';
 
 export default function Settings({ theme, onChangeTheme }) {
   const { t, i18n } = useTranslation();
@@ -15,6 +14,24 @@ export default function Settings({ theme, onChangeTheme }) {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [checkoutSecret, setCheckoutSecret] = useState(null);
+  const [connected, setConnected] = useState(false);
+  const [checkingConn, setCheckingConn] = useState(true);
+  const [connecting, setConnecting] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { connected } = await getConnectionStatus();
+        if (mounted) setConnected(!!connected);
+      } catch (_) {
+        if (mounted) setConnected(false);
+      } finally {
+        if (mounted) setCheckingConn(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <div className="panel">
@@ -23,6 +40,79 @@ export default function Settings({ theme, onChangeTheme }) {
         <p>{t('settings.description')}</p>
       </div>
       <div className="panel-body">
+        {/* Connexion LinkFixer Cloud */}
+        {!checkingConn && (
+          <div id="lf-consent" style={{
+            marginBottom: 16,
+            padding: 12,
+            backgroundColor: 'var(--color-bg-secondary)',
+            borderRadius: 8,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}>
+            <div>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>{t('connection.statusTitle')}</div>
+              <div style={{ opacity: 0.85 }}>
+                {connected ? t('connection.connected') : t('connection.notConnected')}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {!connected && (
+                <button
+                  className="btn primary"
+                  disabled={connecting}
+                  onClick={async () => {
+                    setConnecting(true);
+                    try {
+                      await connectAccount();
+                      setConnected(true);
+                    } catch (_) {
+                      alert(t('connection.error'));
+                    } finally {
+                      setConnecting(false);
+                    }
+                  }}
+                >
+                  {connecting ? t('common.loading') : t('connection.connectButton')}
+                </button>
+              )}
+              {connected && (
+                <button
+                  className="btn danger"
+                  onClick={async () => {
+                    if (!confirm(t('connection.disconnectConfirm'))) return;
+                    try {
+                      await deleteAccount();
+                      setConnected(false);
+                      // Redirige vers la carte de consentement pour recréer un compte
+                      const w = typeof window !== 'undefined' ? window : null;
+                      if (w && w.location) {
+                        const { location } = w;
+                        const origin = location.origin;
+                        const path = location.pathname;
+                        const adminIndex = path.indexOf('/wp-admin/');
+                        const adminBase = adminIndex >= 0
+                          ? origin + path.slice(0, adminIndex + '/wp-admin/'.length)
+                          : origin + '/wp-admin/';
+                        const target = `${adminBase}admin.php?page=link-fixer#lf-consent`;
+                        w.location.assign(target);
+                        return;
+                      }
+                      alert(t('connection.disconnectSuccess'));
+                    } catch (_) {
+                      alert(t('connection.disconnectError'));
+                    }
+                  }}
+                >
+                  {t('connection.disconnectButton')}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        
         {/* Bouton upgrade seulement si version gratuite */}
         {isFree && (
           <div className="unlock-cta" style={{ marginBottom: 16 }}>
@@ -75,51 +165,6 @@ export default function Settings({ theme, onChangeTheme }) {
             {isPro && <CancelSubscriptionButton />}
           </div>
         )}
-
-        <div className="form-grid">
-          <div>
-            <label>{t('settings.general.language')}</label>
-            <div className="form-row">
-              <LanguageSelector />
-            </div>
-          </div>
-
-          <div>
-            <label>{t('settings.general.theme')}</label>
-            <div className="form-row">
-              <label className="switch">
-                <input
-                  type="radio"
-                  name="theme"
-                  checked={theme === 'system'}
-                  onChange={() => onChangeTheme('system')}
-                />
-                <span>{t('settings.general.themes.system')}</span>
-              </label>
-              <label className="switch">
-                <input
-                  type="radio"
-                  name="theme"
-                  checked={theme === 'light'}
-                  onChange={() => onChangeTheme('light')}
-                />
-                <span>{t('settings.general.themes.light')}</span>
-              </label>
-              <label className="switch">
-                <input
-                  type="radio"
-                  name="theme"
-                  checked={theme === 'dark'}
-                  onChange={() => onChangeTheme('dark')}
-                />
-                <span>{t('settings.general.themes.dark')}</span>
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="section" style={{ marginTop: 16 }}>
-        <Scheduler />
       </div>
       {showUpgrade && (
         <UpgradeModal

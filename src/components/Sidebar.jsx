@@ -18,7 +18,7 @@ export default function Sidebar({ active = 'dashboard', onNavigate }) {
         <span className="logo" aria-hidden>
           🔗
         </span>
-        <span className="name">Link Fixer</span>
+        <span className="name">LinkFixer SEO</span>
       </div>
 
       {/* Affichage du statut d'abonnement */}
@@ -36,9 +36,13 @@ export default function Sidebar({ active = 'dashboard', onNavigate }) {
         <div style={{ fontSize: 12, fontWeight: 600, color: isPro ? '#2d5a2d' : '#1a365d' }}>
           {isPro ? `✓ ${t('subscription.proPlan')}` : t('subscription.freePlan')}
         </div>
-        {isPro && subscription?.renewsAt && (
+        {subscription?.renewsAt && (
           <div style={{ fontSize: 10, color: '#666', marginTop: 2 }}>
-            {t('subscription.expiresOn')}{' '}
+            {subscription.isCancelling
+              ? t('subscription.expiresOn')
+              : isPro
+                ? t('settings.subscription.renewal')
+                : t('subscription.expiresOn')}{' '}
             {new Date(subscription.renewsAt).toLocaleDateString(t('locale'))}
           </div>
         )}
@@ -58,6 +62,13 @@ export default function Sidebar({ active = 'dashboard', onNavigate }) {
           onClick={nav('history')}
         >
           {t('navigation.history')}
+        </a>
+        <a
+          className={`item ${active === 'scheduler' ? 'active' : ''}`}
+          href="#scheduler"
+          onClick={nav('scheduler')}
+        >
+          {t('navigation.scheduler')}
         </a>
         <a
           className={`item ${active === 'settings' ? 'active' : ''}`}

@@ -1,0 +1,26 @@
+# Files and directories to exclude when building a distribution archive
+.DS_Store
+.editorconfig
+.eslintrc*
+.prettierrc*
+.git
+.github
+.gitignore
+.vite
+node_modules
+src
+docs
+tests
+*.map
+*.log
+package.json
+package-lock.json
+pnpm-lock.yaml
+vite.config.*
+webpack.config.*
+tsconfig.json
+jsconfig.json
+.env
+README.md
+README-i18n.md
+scripts

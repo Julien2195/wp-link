@@ -10,6 +10,7 @@ export default function History({ onUpgrade }) {
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState(null);
   const { canAccessFeature, isFree, isPro, subscription } = useSubscription();
+  const hasHistoryAccess = !isFree || canAccessFeature('scan_history');
 
   useEffect(() => {
     loadScans();
@@ -28,6 +29,7 @@ export default function History({ onUpgrade }) {
   };
 
   const onClearHistory = async () => {
+    if (!isPro) return; // Only Pro can clear history
     if (!confirm(t('history.confirmClear'))) return;
     try {
       await clearScans();
@@ -84,7 +86,7 @@ export default function History({ onUpgrade }) {
           <h3>{t('history.title')}</h3>
           <p>{t('history.description')}</p>
         </div>
-        {scans.length > 0 && (
+        {isPro && hasHistoryAccess && scans.length > 0 && (
           <button className="btn danger" onClick={onClearHistory}>
             {t('history.clearHistory')}
           </button>
@@ -104,11 +106,11 @@ export default function History({ onUpgrade }) {
         )}
 
         {/* Contenu normal pour les utilisateurs Pro ou si la fonctionnalité est accessible */}
-        {(!isFree || canAccessFeature('scan_history')) && scans.length === 0 && (
+        {hasHistoryAccess && scans.length === 0 && (
           <p>{t('history.noScans')}</p>
         )}
 
-        {(!isFree || canAccessFeature('scan_history')) && scans.length > 0 && (
+        {hasHistoryAccess && scans.length > 0 && (
           <div className="table-wrap">
             <table className="results-table">
               <thead>
