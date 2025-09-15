@@ -14,13 +14,19 @@ const getWordPressLanguage = () => {
   }
 
   // Sinon, récupération de la langue depuis les paramètres WordPress
-  const wpLanguage = window.WPLS_SETTINGS?.locale || 'en_US';
-  
+  const wpLanguage = window.LINK_FIXER_SETTINGS?.locale || 'en_US';
+
   // Conversion du format WordPress (en_US, fr_FR) vers le format i18next (en, fr)
-  if (wpLanguage.startsWith('fr')) {
-    return 'fr';
+  const detected = wpLanguage && String(wpLanguage).toLowerCase().startsWith('fr') ? 'fr' : 'en';
+
+  // Persister ce choix initial afin de garder la cohérence entre les sessions
+  try {
+    localStorage.setItem('wpls.language', detected);
+  } catch (_) {
+    // ignore
   }
-  return 'en'; // Par défaut anglais pour toutes les autres langues
+
+  return detected; // Par défaut anglais pour toutes les autres langues
 };
 
 const resources = {

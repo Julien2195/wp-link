@@ -10,8 +10,15 @@ export default defineConfig({
     emptyOutDir: true,
     manifest: true,
     rollupOptions: {
-      input: 'src/main.jsx'
+      input: 'src/main.jsx',
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          i18n: ['i18next', 'react-i18next'],
+          stripe: ['@stripe/react-stripe-js', '@stripe/stripe-js'],
+          mui: ['@mui/material', '@mui/x-date-pickers', '@emotion/react', '@emotion/styled'],
+        }
+      }
     }
   }
 });
-
