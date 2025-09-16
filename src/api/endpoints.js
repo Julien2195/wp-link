@@ -1,8 +1,11 @@
 import api from './client';
 
 // Explicit opt-in: connect WP site to remote service and store API key on server
-export async function connectAccount() {
-  const { data } = await api.post('/connect');
+// Explicit opt-in: connect account.
+// - In WP plugin context: POST /connect without body (server uses admin email)
+// - In web app context (BFF): POST /connect with { email } payload
+export async function connectAccount(payload) {
+  const { data } = await api.post('/connect', payload || undefined);
   return data; // { ok: true }
 }
 

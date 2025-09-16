@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, Suspense, lazy } from 'react';
+import React, { useEffect, useMemo, useRef, useState, Suspense, lazy } from 'react';
 import { useSubscription } from './hooks/useSubscription.js';
 import Sidebar from './components/Sidebar.jsx';
 import Header from './components/Header.jsx';
@@ -12,10 +12,18 @@ import Scheduler from './components/Scheduler.jsx';
 import UnlockButton from './components/UnlockButton.jsx';
 const UpgradeModal = lazy(() => import('./components/UpgradeModal.jsx'));
 const PaymentModal = lazy(() => import('./components/PaymentModal.jsx'));
-import { createEmbeddedCheckoutSession, createHostedCheckoutSession, getConnectionStatus, connectAccount, getUserProfile } from './api/endpoints.js';
+import { 
+  createEmbeddedCheckoutSession,
+  createHostedCheckoutSession,
+  getConnectionStatus,
+  connectAccount,
+  getUserProfile,
+  startScan as apiStartScan,
+  getScan,
+  getScanResults
+} from './api/endpoints.js';
 import { BASE_URL } from './api/client.js';
 const ReportPreview = lazy(() => import('./components/ReportPreview.jsx'));
-import { startScan as apiStartScan, getScan, getScanResults } from './api/endpoints.js';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './components/LanguageSelector.jsx';
 
@@ -55,6 +63,24 @@ export default function App() {
   const [connected, setConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [connectError, setConnectError] = useState(null);
+  const isWpPluginContext = typeof window !== 'undefined' && !!window.LINK_FIXER_SETTINGS;
+  const [email, setEmail] = useState('');
+  const [site, setSite] = useState('');
+  const [includeMenus, setIncludeMenus] = useState(true);
+  const [includeWidgets, setIncludeWidgets] = useState(true);
+  const pollTimerRef = useRef(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (pollTimerRef.current) {
+        clearTimeout(pollTimerRef.current);
+        pollTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // Force consent screen if URL hash requests it (e.g., after account deletion)
   const [forceConsent, setForceConsent] = useState(() =>
@@ -113,13 +139,36 @@ export default function App() {
       }
 
       // Démarrer le scan via l'API
+      const raw = (site && site.trim()) ? site.trim() : '';
+      let siteToScan = raw;
+      const isWeb = !isWpPluginContext;
+      const looksUrl = (s) => /^https?:\/\/[^\s]+$/i.test(s);
+      const looksHost = (s) => /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(s);
+      if (isWeb) {
+        if (!siteToScan) {
+          alert('Veuillez saisir un domaine (ex. https://mon-site.com)');
+          setScanning(false);
+          return;
+        }
+        if (!looksUrl(siteToScan)) {
+          if (looksHost(siteToScan)) {
+            siteToScan = 'https://' + siteToScan;
+          } else {
+            alert('URL invalide. Exemple attendu: https://mon-site.com');
+            setScanning(false);
+            return;
+          }
+        }
+      } else {
+        // Plugin WP: fallback sur l'origine si champ vide
+        if (!siteToScan && typeof window !== 'undefined' && window.location && window.location.origin) {
+          siteToScan = window.location.origin;
+        }
+      }
       const scanData = await apiStartScan({
-        site:
-          typeof window !== 'undefined' && window.location && window.location.origin
-            ? window.location.origin
-            : undefined,
-        includeMenus: true,
-        includeWidgets: true,
+        site: siteToScan,
+        includeMenus: !!includeMenus,
+        includeWidgets: !!includeWidgets,
       });
 
       setCurrentScanId(scanData.id);
@@ -136,9 +185,10 @@ export default function App() {
           console.log('Poll: Found', results.items?.length || 0, 'links');
 
           // Si le scan n'est pas terminé, continuer le polling
+          if (!isMountedRef.current) return;
           if (scanStatus.status === 'running' || scanStatus.status === 'pending') {
             console.log('Poll: Continuing polling in 2s...');
-            setTimeout(pollResults, 2000); // Vérifier toutes les 2 secondes
+            pollTimerRef.current = setTimeout(pollResults, 2000);
           } else {
             // Scan terminé (completed, cancelled, ou autre statut)
             console.log('Poll: Scan finished with status:', scanStatus.status);
@@ -146,19 +196,38 @@ export default function App() {
           }
         } catch (error) {
           console.error('Erreur lors du polling:', error);
-          setScanning(false);
+          if (isMountedRef.current) setScanning(false);
         }
       };
 
       // Démarrer le polling après 1 seconde
-      setTimeout(pollResults, 1000);
+      pollTimerRef.current = setTimeout(pollResults, 1000);
     } catch (error) {
       console.error('Erreur lors du démarrage du scan:', error);
-      setScanning(false);
+      if (isMountedRef.current) setScanning(false);
     }
   };
 
-  const onUpdateFilters = (partial) => setFilters((prev) => ({ ...prev, ...partial }));
+  const onUpdateFilters = (partial) => {
+    if (!partial || typeof partial !== 'object') return;
+
+    // Handle special fields that are not part of filters
+    if (Object.prototype.hasOwnProperty.call(partial, 'site')) {
+      setSite(partial.site);
+    }
+    if (Object.prototype.hasOwnProperty.call(partial, 'includeMenus')) {
+      setIncludeMenus(!!partial.includeMenus);
+    }
+    if (Object.prototype.hasOwnProperty.call(partial, 'includeWidgets')) {
+      setIncludeWidgets(!!partial.includeWidgets);
+    }
+
+    // Merge remaining keys into filters
+    const { site: _s, includeMenus: _m, includeWidgets: _w, ...rest } = partial;
+    if (Object.keys(rest).length > 0) {
+      setFilters((prev) => ({ ...prev, ...rest }));
+    }
+  };
 
   const stats = useMemo(() => {
     const total = links.length;
@@ -175,9 +244,13 @@ export default function App() {
     if (filters.status !== 'all') data = data.filter((l) => l.status === filters.status);
     if (filters.search) {
       const q = filters.search.toLowerCase();
-      data = data.filter(
-        (l) => l.url.toLowerCase().includes(q) || l.source.toLowerCase().includes(q),
-      );
+      data = data.filter((l) => {
+        const urlMatch = (l.url || '').toLowerCase().includes(q);
+        // Support grouped results: sources[]; and ungrouped: source
+        const sourcesArr = Array.isArray(l.sources) ? l.sources : (l.source ? [l.source] : []);
+        const srcMatch = sourcesArr.some((s) => (s || '').toLowerCase().includes(q));
+        return urlMatch || srcMatch;
+      });
     }
     data.sort((a, b) => {
       const { sortBy, sortDir } = filters;
@@ -250,14 +323,45 @@ export default function App() {
                   {t('connection.error')}
                 </div>
               )}
+              {/* Web app context: ask for email explicitly */}
+              {!isWpPluginContext && (
+                <div style={{ width: '100%', maxWidth: 520, textAlign: 'left' }}>
+                  <label htmlFor="lf-email" style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
+                    Email
+                  </label>
+                  <input
+                    id="lf-email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    placeholder="vous@exemple.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 8,
+                      background: 'var(--color-bg)',
+                    }}
+                  />
+                  <div style={{ marginTop: 8, fontSize: 12, opacity: 0.8 }}>
+                    Nous utilisons votre email pour créer votre espace Link Fixer et associer vos analyses. Pas de mot de passe.
+                  </div>
+                </div>
+              )}
               <button
                 className="btn primary large"
-                disabled={connecting}
+                disabled={connecting || (!isWpPluginContext && (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)))}
                 onClick={async () => {
                   setConnecting(true);
                   setConnectError(null);
                   try {
-                    await connectAccount();
+                    const payload = isWpPluginContext ? undefined : {
+                      email,
+                      ...(site && site.trim() ? { site_url: site.trim() } : {})
+                    };
+                    await connectAccount(payload);
                     setConnected(true);
                     // refresh subscription and state shortly after connect
                     setTimeout(() => refreshSubscription(), 300);
@@ -317,6 +421,9 @@ export default function App() {
                 scanning={scanning}
                 onChange={onUpdateFilters}
                 onUpgrade={() => setShowUpgrade(true)}
+                site={site}
+                includeMenus={includeMenus}
+                includeWidgets={includeWidgets}
               />
             </div>
             <div className="section">
@@ -354,12 +461,6 @@ export default function App() {
         {route === 'settings' && (
           <div className="section">
             <Settings theme={theme} onChangeTheme={setTheme} />
-          </div>
-        )}
-
-        {route === 'privacy' && (
-          <div className="section">
-            <PrivacyPolicy />
           </div>
         )}
 
