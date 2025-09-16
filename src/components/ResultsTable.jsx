@@ -99,7 +99,7 @@ export default function ResultsTable({ items, total, filters, onChangeFilters })
                     {l.sources ? (
                       <div className="sources-grouped">
                         <span className="source-count">
-                          {l.sourceCount} {t('results.sources', { count: l.sourceCount })}
+                          {t(l.sourceCount === 1 ? 'results.sources_one' : 'results.sources_other', { count: l.sourceCount })}
                         </span>
                         {l.sources.length > 0 && (
                           <div className="source-list">
