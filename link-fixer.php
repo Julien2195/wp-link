@@ -22,7 +22,7 @@ if (!class_exists('WP_Link_Scanner')) {
     {
         private static $instance = null;
         private static $menu_hook = '';
-        private const SLUG = 'link-fixer';
+        private const SLUG = 'linkfixer-seo';
 
         public static function instance()
         {
@@ -242,6 +242,10 @@ if (!class_exists('WP_Link_Scanner')) {
 
                 // User connect (explicit opt-in)
                 ['POST', '/connect'],
+                // User consent (WordPress context)
+                ['POST', '/consent'],
+                // Auth refresh (for maintaining session)
+                ['POST', '/auth/refresh'],
                 // User profile (for debugging/user context)
                 ['GET', '/users/profile'],
 
@@ -295,6 +299,10 @@ if (!class_exists('WP_Link_Scanner')) {
                         if ($route === '/connect' && $method === 'POST') {
                             return $this->handle_connect($request);
                         }
+                        // Special case: consent route for WordPress context
+                        if ($route === '/consent' && $method === 'POST') {
+                            return $this->handle_consent($request);
+                        }
                         // Special case: delete-account triggers remote deletion then clears local options
                         if ($route === '/delete-account' && $method === 'DELETE') {
                             return $this->handle_delete_account($request);
@@ -303,7 +311,11 @@ if (!class_exists('WP_Link_Scanner')) {
                         return $this->forward_to_remote_api($request, $route, $method);
                     },
                     'permission_callback' => function () use ($route) {
-                        // Allow health/plans for any logged-in capability? Keep admin-only for simplicity
+                        // Allow some endpoints to be more permissive for logged-in users
+                        if (in_array($route, ['/status', '/connect', '/consent'])) {
+                            return current_user_can('read');
+                        }
+                        // For other routes, require admin permissions
                         return current_user_can('manage_options');
                     },
                     'args' => [],
@@ -344,6 +356,7 @@ if (!class_exists('WP_Link_Scanner')) {
             ];
 
             $api_key = $this->get_api_key();
+            error_log('[LinkFixer] forward_to_remote_api: api_key = ' . ($api_key ? '[PRESENT]' : '[EMPTY]'));
             if (!empty($api_key)) {
                 $headers['X-API-Key'] = $api_key;
             }
@@ -411,12 +424,16 @@ if (!class_exists('WP_Link_Scanner')) {
 
         private function handle_connect(\WP_REST_Request $request)
         {
-            if (!current_user_can('manage_options')) {
-                return new \WP_REST_Response(['error' => 'forbidden'], 403);
+            // Debug logging
+            error_log('[LinkFixer] handle_connect called, user_logged_in: ' . (is_user_logged_in() ? 'YES' : 'NO'));
+
+            if (!is_user_logged_in()) {
+                error_log('[LinkFixer] User not logged in');
+                return new \WP_REST_Response(['error' => 'not_logged_in'], 401);
             }
 
             $remote_base = rtrim($this->get_remote_base_url(), '/');
-            $url = $remote_base . '/users/register';
+            $url = $remote_base . '/connect';
 
             $admin_email = sanitize_email(get_bloginfo('admin_email'));
             $site_url    = esc_url_raw(home_url());
@@ -425,18 +442,15 @@ if (!class_exists('WP_Link_Scanner')) {
                 return new \WP_REST_Response(['error' => 'admin_email_missing'], 400);
             }
 
-            $payload = [
-                'email'    => $admin_email,
-                'site_url' => $site_url,
-            ];
-
             $response = wp_remote_post($url, [
                 'headers' => [
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
+                    'X-WP-User-Email' => $admin_email,
+                    'X-WP-Site-URL' => $site_url,
                 ],
                 'timeout' => 30,
-                'body'    => wp_json_encode($payload),
+                'body'    => '{}', // Empty body for WordPress context
             ]);
 
             if (is_wp_error($response)) {
@@ -447,22 +461,110 @@ if (!class_exists('WP_Link_Scanner')) {
             $body   = wp_remote_retrieve_body($response);
             $data   = json_decode($body, true);
 
-            if ($status >= 400 || !is_array($data) || empty($data['user']['api_key'])) {
+            if ($status >= 400) {
                 return new \WP_REST_Response([
-                    'error' => 'registration_failed',
+                    'error' => 'connect_failed',
                     'details' => $data,
                 ], $status);
             }
 
-            // Store API credentials securely in options
-            update_option('wp_link_scanner_api_key', sanitize_text_field($data['user']['api_key']));
-            if (!empty($data['user']['id'])) {
-                update_option('wp_link_scanner_user_id', intval($data['user']['id']));
+            // Handle different response types
+            if (isset($data['requires_consent']) && $data['requires_consent']) {
+                // User doesn't exist, requires consent
+                return new \WP_REST_Response([
+                    'requires_consent' => true,
+                    'email' => $data['email'] ?? $admin_email,
+                    'message' => 'User consent required'
+                ], 200);
+            }
+
+            if (isset($data['auto_connected']) && $data['auto_connected']) {
+                // User exists, auto-connected
+                $api_key = $data['user']['api_key'] ?? '';
+                error_log('[LinkFixer] handle_connect: received api_key = ' . ($api_key ? '[PRESENT]' : '[EMPTY]'));
+                if (!empty($api_key)) {
+                    update_option('wp_link_scanner_api_key', sanitize_text_field($api_key));
+                    error_log('[LinkFixer] handle_connect: saved api_key to wp_link_scanner_api_key');
+                    if (!empty($data['user']['id'])) {
+                        update_option('wp_link_scanner_user_id', intval($data['user']['id']));
+                    }
+                }
+                return new \WP_REST_Response([
+                    'ok' => true,
+                    'auto_connected' => true
+                ], 200);
+            }
+
+            // Fallback for unexpected response
+            return new \WP_REST_Response([
+                'error' => 'unexpected_response',
+                'details' => $data,
+            ], 500);
+        }
+
+        private function handle_consent(\WP_REST_Request $request)
+        {
+            if (!is_user_logged_in()) {
+                return new \WP_REST_Response(['error' => 'not_logged_in'], 401);
+            }
+
+            $remote_base = rtrim($this->get_remote_base_url(), '/');
+            $url = $remote_base . '/consent';
+
+            $admin_email = sanitize_email(get_bloginfo('admin_email'));
+            $site_url    = esc_url_raw(home_url());
+
+            if (empty($admin_email)) {
+                return new \WP_REST_Response(['error' => 'admin_email_missing'], 400);
+            }
+
+            $response = wp_remote_post($url, [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                    'X-WP-User-Email' => $admin_email,
+                    'X-WP-Site-URL' => $site_url,
+                ],
+                'timeout' => 30,
+                'body'    => wp_json_encode(['consent' => true]),
+            ]);
+
+            if (is_wp_error($response)) {
+                return new \WP_REST_Response(['error' => $response->get_error_message()], 500);
+            }
+
+            $status = wp_remote_retrieve_response_code($response) ?: 200;
+            $body   = wp_remote_retrieve_body($response);
+            $data   = json_decode($body, true);
+
+            if ($status >= 400) {
+                return new \WP_REST_Response([
+                    'error' => 'consent_failed',
+                    'details' => $data,
+                ], $status);
+            }
+
+            // User created and auto-connected after consent
+            if (isset($data['auto_connected']) && $data['auto_connected']) {
+                $api_key = $data['user']['api_key'] ?? '';
+                error_log('[LinkFixer] handle_consent: received api_key = ' . ($api_key ? '[PRESENT]' : '[EMPTY]'));
+                if (!empty($api_key)) {
+                    update_option('wp_link_scanner_api_key', sanitize_text_field($api_key));
+                    error_log('[LinkFixer] handle_consent: saved api_key to wp_link_scanner_api_key');
+                    if (!empty($data['user']['id'])) {
+                        update_option('wp_link_scanner_user_id', intval($data['user']['id']));
+                    }
+                }
+                return new \WP_REST_Response([
+                    'ok' => true,
+                    'auto_connected' => true
+                ], 200);
             }
 
             return new \WP_REST_Response([
-                'ok' => true,
-            ], 200);
+                'error' => 'unexpected_response',
+                'details' => $data,
+            ], 500);
         }
 
         /**

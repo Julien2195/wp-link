@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import '../../styles/Plans.scss';
 import { getPlans, updateSubscription } from '../api/endpoints.js';
+import LoadingIndicator from './LoadingIndicator.jsx';
 
 function Check() {
   return <span className="check">✔</span>;
@@ -86,7 +87,7 @@ export default function Plans({ onSelect }) {
           <p>{t('payment.description')}</p>
         </div>
         <div className="panel-body">
-          {loading && <p>{t('common.loading')}</p>}
+          {loading && <LoadingIndicator block size="lg" />}
           {error && <p className="error">{error}</p>}
           {!loading && !error && (
             <div className="plans-grid">

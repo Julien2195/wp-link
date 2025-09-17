@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, Suspense, lazy } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState, Suspense, lazy } from 'react';
 import { useSubscription } from './hooks/useSubscription.js';
 import Sidebar from './components/Sidebar.jsx';
 import Header from './components/Header.jsx';
@@ -12,24 +12,36 @@ import Scheduler from './components/Scheduler.jsx';
 import UnlockButton from './components/UnlockButton.jsx';
 const UpgradeModal = lazy(() => import('./components/UpgradeModal.jsx'));
 const PaymentModal = lazy(() => import('./components/PaymentModal.jsx'));
-import { 
+import LoadingIndicator from './components/LoadingIndicator.jsx';
+import {
   createEmbeddedCheckoutSession,
   createHostedCheckoutSession,
   getConnectionStatus,
   connectAccount,
+  giveConsent,
   getUserProfile,
+  refreshAuth,
+  getSubscription,
   startScan as apiStartScan,
   getScan,
-  getScanResults
+  getScanResults,
+  sendVerification,
+  confirmVerification,
 } from './api/endpoints.js';
 import { BASE_URL } from './api/client.js';
 const ReportPreview = lazy(() => import('./components/ReportPreview.jsx'));
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './components/LanguageSelector.jsx';
 
+const LOGIN_PENDING_KEY = 'wpls.loginPending';
+const LOGIN_COMPLETED_KEY = 'wpls.loginCompleted';
+
 export default function App() {
   const { t } = useTranslation();
+  console.log('[LF] App render start');
   const { refresh: refreshSubscription, isPro, isFree, subscription } = useSubscription();
+  console.log('[LF] useSubscription initial:', { isPro, isFree, subscription });
+
   const [links, setLinks] = useState([]);
   const [scanning, setScanning] = useState(false);
   const [currentScanId, setCurrentScanId] = useState(null);
@@ -54,6 +66,7 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem('wpls.theme', theme);
+    console.log('[LF] Theme changed to', theme, 'effectiveTheme=', effectiveTheme);
   }, [theme]);
 
   const effectiveTheme = theme === 'system' ? getSystemTheme() : theme;
@@ -63,6 +76,10 @@ export default function App() {
   const [connected, setConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [connectError, setConnectError] = useState(null);
+  const [verificationStep, setVerificationStep] = useState('form'); // form | sent
+  const [verificationEmail, setVerificationEmail] = useState('');
+  const [consentRequired, setConsentRequired] = useState(false);
+  const [consentEmail, setConsentEmail] = useState('');
   const isWpPluginContext = typeof window !== 'undefined' && !!window.LINK_FIXER_SETTINGS;
   const [email, setEmail] = useState('');
   const [site, setSite] = useState('');
@@ -70,9 +87,11 @@ export default function App() {
   const [includeWidgets, setIncludeWidgets] = useState(true);
   const pollTimerRef = useRef(null);
   const isMountedRef = useRef(true);
+  const autoConnectAttemptedRef = useRef(false);
 
   useEffect(() => {
     isMountedRef.current = true;
+    console.log('[LF] App mounted');
     return () => {
       isMountedRef.current = false;
       if (pollTimerRef.current) {
@@ -82,9 +101,45 @@ export default function App() {
     };
   }, []);
 
+  const processWpConnectOutcome = useCallback(
+    (result, source = 'manual-connect') => {
+      if (!result) return;
+
+      if (result.auto_connected || result.ok) {
+        console.log(`[LF] ${source}: user connected (auto)`);
+        setConnected(true);
+        setConsentRequired(false);
+        setConsentEmail('');
+        setConnectError(null);
+      } else if (result.requires_consent) {
+        const email = result.email || '';
+        console.log(`[LF] ${source}: consent required for`, email);
+        setConsentRequired(true);
+        setConsentEmail(email);
+        setConnected(false);
+      }
+
+      if (result.auto_connected || result.ok) {
+        setTimeout(() => {
+          refreshSubscription()
+            .then(() =>
+              console.log(`[LF] refreshSubscription() completed after ${source}`),
+            )
+            .catch((err) =>
+              console.warn(
+                `[LF] refreshSubscription() after ${source} failed:`,
+                err?.message || err,
+              ),
+            );
+        }, 300);
+      }
+    },
+    [refreshSubscription],
+  );
+
   // Force consent screen if URL hash requests it (e.g., after account deletion)
-  const [forceConsent, setForceConsent] = useState(() =>
-    (typeof window !== 'undefined' && window.location?.hash === '#lf-consent')
+  const [forceConsent, setForceConsent] = useState(
+    () => typeof window !== 'undefined' && window.location?.hash === '#lf-consent',
   );
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -94,18 +149,183 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!isWpPluginContext) return;
+    if (checkingConn || connected || forceConsent) return;
+    if (autoConnectAttemptedRef.current) return;
+
+    autoConnectAttemptedRef.current = true;
+    console.log('[LF] Auto-connect check triggered for WordPress context');
+
+    (async () => {
+      setConnecting(true);
+      setConnectError(null);
+      try {
+        const result = await connectAccount();
+        console.log('[LF] Auto connectAccount() result:', result);
+        processWpConnectOutcome(result, 'auto-connect');
+      } catch (err) {
+        console.warn(
+          '[LF] Auto connect attempt failed:',
+          err?.response?.status || err?.message || err,
+        );
+        setConnectError(true);
+      } finally {
+        setConnecting(false);
+      }
+    })();
+  }, [checkingConn, connected, forceConsent, isWpPluginContext, processWpConnectOutcome]);
+
+  useEffect(() => {
     let mounted = true;
+    console.log('[LF] Running getConnectionStatus effect');
+
     (async () => {
       try {
-        const { connected } = await getConnectionStatus();
-        if (mounted) setConnected(!!connected);
-      } catch (_) {
-        if (mounted) setConnected(false);
+        // 1) On essaie d’abord le refresh silencieux (cookie lf_rt)
+        const ref = await refreshAuth();
+        console.log('[LF] refreshAuth() at boot:', ref);
+        if (mounted) {
+          setConnected(true);
+          try {
+            await refreshSubscription();
+          } catch {}
+        }
+      } catch (e) {
+        console.warn('[LF] refreshAuth() at boot failed, fallback to status:', e?.message || e);
+        // 2) Fallback status
+        try {
+          const { connected } = await getConnectionStatus();
+          if (mounted) setConnected(!!connected);
+        } catch {
+          if (mounted) setConnected(false);
+        }
       } finally {
         if (mounted) setCheckingConn(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // If URL contains verify_token, call confirmVerification to finalize
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('verify_token') || params.get('token');
+    const verifiedFlag = params.get('verified');
+    console.log('[LF] Verification effect run; params:', Object.fromEntries(params.entries()));
+
+    // If backend redirected with ?verified=1 (cookies already set), perform a health check
+    if (verifiedFlag === '1') {
+      (async () => {
+        console.log('[LF] Detected verified=1 in URL — running post-redirect health check');
+        try {
+          const [p, s, cs] = await Promise.allSettled([
+            getUserProfile(),
+            getSubscription(),
+            getConnectionStatus(),
+          ]);
+          console.log('[LF] health getUserProfile:', p.status === 'fulfilled' ? p.value : p.reason);
+          console.log(
+            '[LF] health getSubscription:',
+            s.status === 'fulfilled' ? s.value : s.reason,
+          );
+          console.log(
+            '[LF] health getConnectionStatus:',
+            cs.status === 'fulfilled' ? cs.value : cs.reason,
+          );
+
+          // If either profile or subscription indicates a session, mark connected
+          const profileOk = p.status === 'fulfilled' && p.value && (p.value.user || p.value?.id);
+          const subOk = s.status === 'fulfilled' && s.value;
+          if (profileOk || subOk) {
+            console.log(
+              '[LF] Health check indicates active session — setting connected and refreshing',
+            );
+            setConnected(true);
+            try {
+              await refreshSubscription();
+              console.log('[LF] refreshSubscription() completed from verified=1 health check');
+            } catch (err) {
+              console.warn('[LF] refreshSubscription() failed:', err);
+            }
+          } else {
+            console.warn('[LF] Health check indicates no active session after redirect');
+          }
+        } catch (err) {
+          console.warn('[LF] Error during verified=1 health check:', err);
+        } finally {
+          // clean URL param
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('verified');
+            window.history.replaceState(null, '', url.pathname + url.search);
+            console.log('[LF] Removed verified param from URL');
+          } catch (_) {}
+        }
+      })();
+    }
+
+    if (token) {
+      (async () => {
+        try {
+          const resp = await confirmVerification(token);
+          console.log('[LF] confirmVerification() response:', resp);
+          if (resp?.ok) {
+            // If API key provided, try to set connected state
+            if (resp.user?.api_key) {
+              // Optionally store API key in localStorage for client usage
+              try {
+                localStorage.setItem('wpls.api_key', resp.user.api_key);
+              } catch (_) {}
+            }
+            setConnected(true);
+            try {
+              await refreshSubscription();
+              console.log('[LF] refreshSubscription() completed after token confirm');
+            } catch (rsErr) {
+              console.warn(
+                '[LF] refreshSubscription() after token confirm failed:',
+                rsErr?.message || rsErr,
+              );
+            }
+
+            // Post-token-confirm health check
+            try {
+              const [p2, s2, cs2] = await Promise.allSettled([
+                getUserProfile(),
+                getSubscription(),
+                getConnectionStatus(),
+              ]);
+              console.log(
+                '[LF] post-token health getUserProfile:',
+                p2.status === 'fulfilled' ? p2.value : p2.reason,
+              );
+              console.log(
+                '[LF] post-token health getSubscription:',
+                s2.status === 'fulfilled' ? s2.value : s2.reason,
+              );
+              console.log(
+                '[LF] post-token health getConnectionStatus:',
+                cs2.status === 'fulfilled' ? cs2.value : cs2.reason,
+              );
+            } catch (hcErr) {
+              console.warn('[LF] post-token health check error:', hcErr);
+            }
+          }
+          // Remove token from URL to clean UX
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('verify_token');
+            url.searchParams.delete('token');
+            window.history.replaceState(null, '', url.pathname + url.search);
+          } catch (_) {}
+        } catch (e) {
+          console.warn('Email verification failed', e);
+        }
+      })();
+    }
   }, []);
 
   const startScan = async () => {
@@ -132,14 +352,17 @@ export default function App() {
           const profile = await getUserProfile();
           console.log('User profile:', profile?.user || profile);
         } catch (e) {
-          console.warn('Could not fetch user profile (non-fatal):', e?.response?.status || e?.message || e);
+          console.warn(
+            'Could not fetch user profile (non-fatal):',
+            e?.response?.status || e?.message || e,
+          );
         }
       } finally {
         console.groupEnd?.();
       }
 
       // Démarrer le scan via l'API
-      const raw = (site && site.trim()) ? site.trim() : '';
+      const raw = site && site.trim() ? site.trim() : '';
       let siteToScan = raw;
       const isWeb = !isWpPluginContext;
       const looksUrl = (s) => /^https?:\/\/[^\s]+$/i.test(s);
@@ -161,7 +384,12 @@ export default function App() {
         }
       } else {
         // Plugin WP: fallback sur l'origine si champ vide
-        if (!siteToScan && typeof window !== 'undefined' && window.location && window.location.origin) {
+        if (
+          !siteToScan &&
+          typeof window !== 'undefined' &&
+          window.location &&
+          window.location.origin
+        ) {
           siteToScan = window.location.origin;
         }
       }
@@ -247,7 +475,7 @@ export default function App() {
       data = data.filter((l) => {
         const urlMatch = (l.url || '').toLowerCase().includes(q);
         // Support grouped results: sources[]; and ungrouped: source
-        const sourcesArr = Array.isArray(l.sources) ? l.sources : (l.source ? [l.source] : []);
+        const sourcesArr = Array.isArray(l.sources) ? l.sources : l.source ? [l.source] : [];
         const srcMatch = sourcesArr.some((s) => (s || '').toLowerCase().includes(q));
         return urlMatch || srcMatch;
       });
@@ -271,10 +499,8 @@ export default function App() {
   if (checkingConn && !forceConsent) {
     return (
       <div className={`wp-link-app theme-${effectiveTheme}`}>
-        <main className="content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
-          <div className="panel" style={{ width: 'min(900px, 96vw)' }}>
-            <div className="panel-body">{t('common.loading')}</div>
-          </div>
+        <main className="content">
+          <LoadingIndicator centered size="lg" />
         </main>
       </div>
     );
@@ -300,13 +526,24 @@ export default function App() {
               className="panel-header"
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
             >
-              <div>
-                <h3 style={{ margin: 0, textAlign: 'center'}}>{t('connection.title')}</h3>
-                <p className="subtitle" style={{ margin: '15px 0 0 0' }}>
+              <div style={{ flex: 1 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <h3 style={{ margin: 0 }}>{t('connection.title')}</h3>
+                  <div style={{ marginLeft: 8 }}>
+                    <LanguageSelector />
+                  </div>
+                </div>
+                <p className="subtitle" style={{ margin: '12px 0 0 0', textAlign: 'center' }}>
                   {t('connection.description')}
                 </p>
               </div>
-              <LanguageSelector />
             </div>
             <div
               className="panel-body"
@@ -318,15 +555,18 @@ export default function App() {
                 gap: 12,
               }}
             >
-              {connectError && (
+              {connectError && (isWpPluginContext || verificationStep !== 'sent') && (
                 <div style={{ color: 'var(--color-danger)', marginBottom: 12 }}>
                   {t('connection.error')}
                 </div>
               )}
               {/* Web app context: ask for email explicitly */}
-              {!isWpPluginContext && (
+              {!isWpPluginContext && verificationStep === 'form' && (
                 <div style={{ width: '100%', maxWidth: 520, textAlign: 'left' }}>
-                  <label htmlFor="lf-email" style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
+                  <label
+                    htmlFor="lf-email"
+                    style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}
+                  >
                     Email
                   </label>
                   <input
@@ -346,42 +586,170 @@ export default function App() {
                     }}
                   />
                   <div style={{ marginTop: 8, fontSize: 12, opacity: 0.8 }}>
-                    Nous utilisons votre email pour créer votre espace Link Fixer et associer vos analyses. Pas de mot de passe.
+                    {t('connection.emailUsageHint')}
                   </div>
                 </div>
               )}
-              <button
-                className="btn primary large"
-                disabled={connecting || (!isWpPluginContext && (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)))}
+              {!isWpPluginContext && verificationStep === 'sent' && (
+                <div style={{ width: '100%', maxWidth: 520, textAlign: 'left' }}>
+                  <h4 style={{ margin: '0 0 12px 0' }}>{t('connection.checkInboxTitle')}</h4>
+                  <p style={{ margin: '0 0 12px 0' }}>
+                    {t('connection.checkInboxBody', { email: verificationEmail })}
+                  </p>
+                  <p style={{ margin: 0, fontSize: 12, opacity: 0.8 }}>
+                    {t('connection.checkInboxHint')}
+                  </p>
+                </div>
+              )}
+              {/* WordPress consent screen */}
+              {isWpPluginContext && consentRequired && (
+                <div style={{ width: '100%', maxWidth: 520, textAlign: 'left' }}>
+                  <h4 style={{ margin: '0 0 12px 0' }}>{t('connection.consentTitle')}</h4>
+                  <p style={{ margin: '0 0 12px 0' }}>
+                    {t('connection.consentDescription', { email: consentEmail })}
+                  </p>
+                  <p style={{ margin: '0 0 12px 0', fontSize: 12, opacity: 0.8 }}>
+                    {t('connection.consentHint')}
+                  </p>
+                  <button
+                    className="btn primary"
+                    disabled={connecting}
+                    onClick={async () => {
+                      setConnecting(true);
+                      setConnectError(null);
+                      try {
+                        console.log('[LF] Giving consent for WordPress');
+                        const result = await giveConsent();
+                        console.log('[LF] Consent result:', result);
+                        if (result.ok || result.auto_connected) {
+                          setConnected(true);
+                          setConsentRequired(false);
+                          setTimeout(() => {
+                            refreshSubscription();
+                            console.log('[LF] Scheduled refreshSubscription() after consent');
+                          }, 300);
+                        }
+                      } catch (err) {
+                        console.warn('[LF] Consent failed:', err?.message || err);
+                        setConnectError(true);
+                      } finally {
+                        setConnecting(false);
+                      }
+                    }}
+                    style={{ marginRight: 12 }}
+                  >
+                    {connecting ? <LoadingIndicator size="sm" /> : t('connection.acceptConsent')}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn link"
+                    onClick={() => {
+                      setConsentRequired(false);
+                      setConsentEmail('');
+                      setConnectError(null);
+                    }}
+                  >
+                    {t('connection.cancelConsent')}
+                  </button>
+                </div>
+              )}
+              {/* Hide main button when WordPress consent is required */}
+              {!(isWpPluginContext && consentRequired) && (
+                <button
+                  className="btn primary large"
+                  disabled={
+                    connecting ||
+                    (!isWpPluginContext &&
+                      verificationStep === 'form' &&
+                      (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)))
+                  }
                 onClick={async () => {
+                  console.log('[LF] Connect button clicked; isWpPluginContext=', isWpPluginContext);
                   setConnecting(true);
                   setConnectError(null);
                   try {
-                    const payload = isWpPluginContext ? undefined : {
-                      email,
-                      ...(site && site.trim() ? { site_url: site.trim() } : {})
-                    };
-                    await connectAccount(payload);
-                    setConnected(true);
-                    // refresh subscription and state shortly after connect
-                    setTimeout(() => refreshSubscription(), 300);
-                    // Clear forced-consent hash to reveal full app
+                    if (isWpPluginContext) {
+                      // WordPress flow: call connectAccount to check if user exists or needs consent
+                      console.log('[LF] Calling connectAccount() (plugin context)');
+                      const result = await connectAccount();
+                      console.log('[LF] connectAccount() result:', result);
+                      processWpConnectOutcome(result, 'manual-connect');
+                    } else {
+                      const targetEmail =
+                        verificationStep === 'sent' && verificationEmail
+                          ? verificationEmail
+                          : email;
+                      console.log('[LF] Calling sendVerification() for email=', targetEmail);
+                      await sendVerification(targetEmail);
+                      console.log(
+                        '[LF] sendVerification() completed; user must click the link in their mailbox',
+                      );
+                      if (typeof window !== 'undefined') {
+                        try {
+                          localStorage.setItem(
+                            LOGIN_PENDING_KEY,
+                            JSON.stringify({ email: targetEmail, requestedAt: Date.now() }),
+                          );
+                          localStorage.removeItem(LOGIN_COMPLETED_KEY);
+                        } catch (storageErr) {
+                          console.warn('[LF] Unable to persist login pending flag:', storageErr);
+                        }
+                      }
+                      setVerificationEmail(targetEmail);
+                      setVerificationStep('sent');
+                      // Keep not connected until user clicks the link in their mailbox
+                    }
+
+                    // Clear forced-consent hash to reveal full app when appropriate
                     if (typeof window !== 'undefined' && window.location?.hash === '#lf-consent') {
                       try {
                         const { pathname, search } = window.location;
                         window.history?.replaceState(null, '', pathname + search);
                         setForceConsent(false);
+                        console.log('[LF] Cleared #lf-consent hash');
                       } catch (_) {}
                     }
-                  } catch (e) {
+                  } catch (err) {
+                    console.warn(
+                      '[LF] Connect flow failed',
+                      err?.response?.status || err?.message || err,
+                    );
                     setConnectError(true);
+                    if (!isWpPluginContext) {
+                      const fallbackEmail =
+                        verificationStep === 'sent' && verificationEmail
+                          ? verificationEmail
+                          : email;
+                      setVerificationEmail(fallbackEmail);
+                      setVerificationStep('sent');
+                    }
                   } finally {
                     setConnecting(false);
                   }
                 }}
               >
-                {connecting ? t('common.loading') : t('connection.connectButton')}
+                {connecting
+                  ? <LoadingIndicator size="sm" />
+                  : isWpPluginContext
+                    ? t('connection.connectButton')
+                    : verificationStep === 'sent'
+                      ? t('connection.resendVerificationButton')
+                      : t('connection.sendVerificationButton') || t('connection.connectButton')}
               </button>
+              )}
+              {!isWpPluginContext && verificationStep === 'sent' && (
+                <button
+                  type="button"
+                  className="btn link"
+                  onClick={() => {
+                    setVerificationStep('form');
+                    setConnectError(null);
+                  }}
+                  style={{ marginTop: 8 }}
+                >
+                  {t('connection.useDifferentEmail')}
+                </button>
+              )}
             </div>
           </div>
         </main>
@@ -444,7 +812,15 @@ export default function App() {
 
         {route === 'history' && (
           <div className="section">
-            <Suspense fallback={<div className="panel"><div className="panel-body">{t('common.loading')}</div></div>}>
+            <Suspense
+              fallback={
+                <div className="panel">
+                  <div className="panel-body panel-loading">
+                    <LoadingIndicator block size="lg" />
+                  </div>
+                </div>
+              }
+            >
               <History onUpgrade={() => setShowUpgrade(true)} />
             </Suspense>
           </div>
@@ -452,8 +828,19 @@ export default function App() {
 
         {route === 'scheduler' && (
           <div className="section">
-            <Suspense fallback={<div className="panel"><div className="panel-body">{t('common.loading')}</div></div>}>
-              <Scheduler onUpgrade={() => setShowUpgrade(true)} isDark={effectiveTheme === 'dark'} />
+            <Suspense
+              fallback={
+                <div className="panel">
+                  <div className="panel-body panel-loading">
+                    <LoadingIndicator block size="lg" />
+                  </div>
+                </div>
+              }
+            >
+              <Scheduler
+                onUpgrade={() => setShowUpgrade(true)}
+                isDark={effectiveTheme === 'dark'}
+              />
             </Suspense>
           </div>
         )}
@@ -475,56 +862,56 @@ export default function App() {
         {showUpgrade && (
           <Suspense fallback={null}>
             <UpgradeModal
-            open={showUpgrade}
-            onClose={() => setShowUpgrade(false)}
-            onProceedPayment={async (plan) => {
-              const current =
-                typeof window !== 'undefined' && window.location
-                  ? window.location.href.split('#')[0]
-                  : '';
-              const sep = current.includes('?') ? '&' : '?';
-              const returnUrl = current
-                ? `${current}${sep}checkout_return=1&session_id={CHECKOUT_SESSION_ID}`
-                : undefined;
-              const successUrl = current
-                ? `${current}${sep}checkout_success=1&session_id={CHECKOUT_SESSION_ID}`
-                : undefined;
-              const cancelUrl = current ? `${current}${sep}checkout_cancel=1` : undefined;
-              // 1) Try Embedded Checkout (preferred)
-              try {
-                const { clientSecret } = await createEmbeddedCheckoutSession({
-                  plan: plan || 'pro',
-                  returnUrl,
-                });
-                if (clientSecret) {
-                  setCheckoutSecret(clientSecret);
-                  setShowUpgrade(false);
-                  setShowPayment(true);
-                  // Rafraîchir l'abonnement après le paiement
-                  setTimeout(() => refreshSubscription(), 2000);
-                  return;
+              open={showUpgrade}
+              onClose={() => setShowUpgrade(false)}
+              onProceedPayment={async (plan) => {
+                const current =
+                  typeof window !== 'undefined' && window.location
+                    ? window.location.href.split('#')[0]
+                    : '';
+                const sep = current.includes('?') ? '&' : '?';
+                const returnUrl = current
+                  ? `${current}${sep}checkout_return=1&session_id={CHECKOUT_SESSION_ID}`
+                  : undefined;
+                const successUrl = current
+                  ? `${current}${sep}checkout_success=1&session_id={CHECKOUT_SESSION_ID}`
+                  : undefined;
+                const cancelUrl = current ? `${current}${sep}checkout_cancel=1` : undefined;
+                // 1) Try Embedded Checkout (preferred)
+                try {
+                  const { clientSecret } = await createEmbeddedCheckoutSession({
+                    plan: plan || 'pro',
+                    returnUrl,
+                  });
+                  if (clientSecret) {
+                    setCheckoutSecret(clientSecret);
+                    setShowUpgrade(false);
+                    setShowPayment(true);
+                    // Rafraîchir l'abonnement après le paiement
+                    setTimeout(() => refreshSubscription(), 2000);
+                    return;
+                  }
+                } catch (e) {
+                  console.error('Embedded Checkout indisponible:', e?.message || e, e);
                 }
-              } catch (e) {
-                console.error('Embedded Checkout indisponible:', e?.message || e, e);
-              }
-              // 2) Fallback to Hosted Checkout created by backend
-              try {
-                const { url } = await createHostedCheckoutSession({
-                  plan: plan || 'pro',
-                  successUrl,
-                  cancelUrl,
-                });
-                if (url) {
-                  setShowUpgrade(false);
-                  window.location.assign(url);
-                  return;
+                // 2) Fallback to Hosted Checkout created by backend
+                try {
+                  const { url } = await createHostedCheckoutSession({
+                    plan: plan || 'pro',
+                    successUrl,
+                    cancelUrl,
+                  });
+                  if (url) {
+                    setShowUpgrade(false);
+                    window.location.assign(url);
+                    return;
+                  }
+                } catch (err) {
+                  console.error('Hosted Checkout indisponible:', err?.message || err, err);
                 }
-              } catch (err) {
-                console.error('Hosted Checkout indisponible:', err?.message || err, err);
-              }
-              // 3) No client-only fallback. Report error.
-              alert('Impossible de démarrer le paiement pour le moment.');
-            }}
+                // 3) No client-only fallback. Report error.
+                alert('Impossible de démarrer le paiement pour le moment.');
+              }}
             />
           </Suspense>
         )}
@@ -532,12 +919,12 @@ export default function App() {
         {showPayment && (
           <Suspense fallback={null}>
             <PaymentModal
-            open={showPayment}
-            onClose={() => {
-              setShowPayment(false);
-              setCheckoutSecret(null);
-            }}
-            checkoutClientSecret={checkoutSecret}
+              open={showPayment}
+              onClose={() => {
+                setShowPayment(false);
+                setCheckoutSecret(null);
+              }}
+              checkoutClientSecret={checkoutSecret}
             />
           </Suspense>
         )}
@@ -545,10 +932,10 @@ export default function App() {
         {showReport && (
           <Suspense fallback={null}>
             <ReportPreview
-            stats={stats}
-            items={filtered}
-            scanId={currentScanId}
-            onClose={() => setShowReport(false)}
+              stats={stats}
+              items={filtered}
+              scanId={currentScanId}
+              onClose={() => setShowReport(false)}
             />
           </Suspense>
         )}
