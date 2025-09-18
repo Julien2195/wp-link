@@ -6,7 +6,13 @@ import api from './client';
 // - In web app context (BFF): POST /connect with { email } payload
 export async function connectAccount(payload) {
   const { data } = await api.post('/connect', payload || undefined);
-  return data; // { ok: true }
+  return data; // { ok: true } or { requires_consent: true, email: string }
+}
+
+// WordPress consent endpoint - called when user gives consent in WP context
+export async function giveConsent() {
+  const { data } = await api.post('/consent', { consent: true });
+  return data; // { ok: true, auto_connected: true, user: {...} }
 }
 
 // Check connection status (whether API key exists server-side)
@@ -31,10 +37,29 @@ export async function getUserProfile() {
   return data; // { user: { id, email, plan, apiKey?, ... } }
 }
 
+// Verification flows
+export async function sendVerification(email) {
+    const { data } = await api.post('/users/send-verification', { email });
+    return data; // { ok: true }
+}
+
+export async function confirmVerification(token) {
+    const { data } = await api.get('/users/verify', { params: { token } });
+    return data; // { ok: true, user: { id, email, api_key } }
+}
+
 // Healthcheck
 export async function getHealth() {
   const { data } = await api.get('/health');
   return data; // { ok: true }
+}
+
+export async function refreshAuth() {
+  // On considère tout 2xx comme un refresh OK.
+  const res = await api.post('/auth/refresh');
+  // Si le backend renvoie un body, on le propage. Sinon, on normalise { ok:true }.
+  const data = res?.data ?? {};
+  return { ok: true, ...data };
 }
 
 // Create a new scan
@@ -211,15 +236,10 @@ export async function updateSchedule(id, payload) {
 
 // Delete schedule
 export async function deleteSchedule(id) {
-  return tryRequest(
-    () => api.delete(`/schedules/${id}`),
-    () => {
-      const items = loadLocalSchedules();
-      const next = items.filter((s) => s.id !== id);
-      saveLocalSchedules(next);
-      return { ok: true };
-    }
-  );
+  // Pour la suppression, on ne veut pas de fallback local car cela masque les erreurs
+  // de suppression en base de données
+  const { data } = await api.delete(`/schedules/${id}`);
+  return data;
 }
 
 // Clear executed one-time schedules history

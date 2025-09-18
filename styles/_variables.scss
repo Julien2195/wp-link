@@ -21,6 +21,10 @@ $space-lg: 22px;
   --color-success: #1b8f5a;
   --color-warning: #b7791f;
   --color-danger: #d1365a;
+--bg-contrast: #0f1724;
+    /* contrast background for elements on light theme */
+    --bg-contrast-text: #ffffff;
+    /* text color to use on contrast bg (light theme) */
   --shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
   --shadow-sm: 0 4px 18px rgba(0, 0, 0, 0.06);
 }
@@ -36,6 +40,10 @@ $space-lg: 22px;
   --color-success: #2fb67b;
   --color-warning: #f2c94c;
   --color-danger: #ef5b81;
+--bg-contrast: #f7f8fb;
+    /* contrast background for elements on dark theme */
+    --bg-contrast-text: #0b1220;
+    /* text color to use on contrast bg (dark theme) */
   --shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
   --shadow-sm: 0 4px 18px rgba(0, 0, 0, 0.3);
 }

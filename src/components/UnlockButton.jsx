@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { updateSubscription } from '../api/endpoints.js';
+import LoadingIndicator from './LoadingIndicator.jsx';
 
 export default function UnlockButton({ label, className = '', onClick }) {
   const { t } = useTranslation();
@@ -31,7 +32,7 @@ export default function UnlockButton({ label, className = '', onClick }) {
 
   return (
     <button className={`btn primary large ${className}`} onClick={handleClick} disabled={loading}>
-      {loading ? t('common.loading') : defaultLabel}
+      {loading ? <LoadingIndicator size="sm" /> : defaultLabel}
     </button>
   );
 }

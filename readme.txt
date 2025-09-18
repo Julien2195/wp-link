@@ -3,7 +3,7 @@ Contributors: jlemaitre
 Tags: links, broken links, link checker, seo
 Requires at least: 6.0
 Tested up to: 6.8
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -28,7 +28,7 @@ No data is sent without your explicit consent.
 
 == Installation ==
 
-1. Upload the plugin files to the `/wp-content/plugins/link-fixer` directory, or install the plugin through the WordPress plugins screen directly.
+1. Upload the plugin files to the `/wp-content/plugins/link-fixer-seo` directory, or install the plugin through the WordPress plugins screen directly.
 2. Activate the plugin through the 'Plugins' screen in WordPress.
 3. Go to the plugin page in the admin and click “Connect to LinkFixer Cloud” to enable scans.
 
@@ -50,10 +50,10 @@ Yes. The free plan allows limited scans. Pro unlocks additional features like un
 
 == Changelog ==
 
-= 0.1.0 =
+= 0.1.1 =
 * Initial release
 
 == Upgrade Notice ==
 
-= 0.1.0 =
+= 0.1.1 =
 First release.

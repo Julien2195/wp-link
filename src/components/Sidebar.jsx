@@ -1,11 +1,32 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSubscription } from '../hooks/useSubscription.js';
+import { getUserProfile } from '../api/endpoints.js';
+import { useEffect, useState } from 'react';
 import '../../styles/Sidebar.scss';
 
 export default function Sidebar({ active = 'dashboard', onNavigate }) {
   const { t } = useTranslation();
   const { isPro, isFree, subscription } = useSubscription();
+  const [email, setEmail] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const profile = await getUserProfile();
+        if (mounted && profile && profile.user && profile.user.email) {
+          setEmail(profile.user.email);
+          console.log('eeee' + profile.user.email);
+        }
+      } catch (err) {
+        console.log('Error getting profile:', err);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const nav = (key) => (e) => {
     e.preventDefault();
@@ -49,6 +70,7 @@ export default function Sidebar({ active = 'dashboard', onNavigate }) {
       </div>
 
       <nav className="menu">
+        {email && <div className="sidebar-email">{email}</div>}
         <a
           className={`item ${active === 'dashboard' ? 'active' : ''}`}
           href="#dashboard"
@@ -79,8 +101,9 @@ export default function Sidebar({ active = 'dashboard', onNavigate }) {
         </a>
         <a
           className={`item ${active === 'privacy' ? 'active' : ''}`}
-          href="#privacy"
-          onClick={nav('privacy')}
+          href="https://linkfixer.io/politique-confidentialite"
+          target="_blank"
+          rel="noopener noreferrer"
         >
           {t('navigation.privacy')}
         </a>

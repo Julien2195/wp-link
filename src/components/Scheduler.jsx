@@ -21,6 +21,7 @@ import {
   deleteSchedule,
   clearScheduleHistory,
 } from '../api/endpoints.js';
+import LoadingIndicator from './LoadingIndicator.jsx';
 import '../../styles/Scheduler.scss';
 
 const tzGuess = () => {
@@ -324,8 +325,57 @@ export default function Scheduler({ onUpgrade, isDark }) {
   }, [items]);
 
   const historySchedules = useMemo(() => {
-    return items.filter((s) => s.type === 'one_time' && !s.active && s.lastRunAt);
+    return items
+      .filter((s) => s.type === 'one_time' && !s.active && s.lastRunAt)
+      .slice()
+      .sort((a, b) => {
+        const aTime = a.lastRunAt ? new Date(a.lastRunAt).getTime() : 0;
+        const bTime = b.lastRunAt ? new Date(b.lastRunAt).getTime() : 0;
+        return bTime - aTime;
+      });
   }, [items]);
+
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyPageSizeChoice, setHistoryPageSizeChoice] = useState('20');
+
+  const historyTotal = historySchedules.length;
+  const historyEffectivePageSize = historyPageSizeChoice === 'all'
+    ? historyTotal || 1
+    : Number(historyPageSizeChoice) || 20;
+  const historyTotalPages = Math.max(
+    1,
+    historyPageSizeChoice === 'all' ? 1 : Math.ceil(historyTotal / historyEffectivePageSize) || 1,
+  );
+
+  useEffect(() => {
+    if (historyPage > historyTotalPages) {
+      setHistoryPage(historyTotalPages);
+    }
+  }, [historyPage, historyTotalPages]);
+
+  const historyPageSizeOptions = useMemo(() => {
+    if (!historyTotal) {
+      return [{ value: '20', label: t('pagination.showCount', { count: 20 }) }];
+    }
+    const options = [{ value: '20', label: t('pagination.showCount', { count: 20 }) }];
+    if (historyTotal <= 20) {
+      return options;
+    }
+    for (let step = 40; step <= historyTotal; step += 20) {
+      options.push({ value: String(step), label: t('pagination.showCount', { count: step }) });
+    }
+    options.push({ value: 'all', label: t('pagination.showAll') });
+    return options;
+  }, [historyTotal, t]);
+
+  const paginatedHistorySchedules = useMemo(() => {
+    if (historyPageSizeChoice === 'all') {
+      return historySchedules;
+    }
+    const size = historyEffectivePageSize;
+    const start = (historyPage - 1) * size;
+    return historySchedules.slice(start, start + size);
+  }, [historySchedules, historyPageSizeChoice, historyEffectivePageSize, historyPage]);
 
   const nextRuns = useMemo(() => {
     const map = {};
@@ -564,7 +614,9 @@ export default function Scheduler({ onUpgrade, isDark }) {
             )}
           </h4>
           {loading ? (
-            <div className="loading-state">{t('common.loading')}</div>
+            <div className="loading-state">
+              <LoadingIndicator size="md" />
+            </div>
           ) : activeSchedules.length === 0 ? (
             <div className="empty-state">
               <p>{t('scheduler.noActiveSchedules')}</p>
@@ -641,6 +693,8 @@ export default function Scheduler({ onUpgrade, isDark }) {
                     await clearScheduleHistory();
                     const res = await listSchedules();
                     setItems(res.items || []);
+                    setHistoryPage(1);
+                    setHistoryPageSizeChoice('20');
                   } catch (e) {
                     alert(t('errors.clearHistory'));
                   }
@@ -649,8 +703,60 @@ export default function Scheduler({ onUpgrade, isDark }) {
                 {t('scheduler.clearHistory')}
               </button>
             </div>
+            {historyTotal > 0 && (
+              <div
+                className="table-controls"
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 16,
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 16,
+                }}
+              >
+                <div className="control-group" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <label htmlFor="schedule-history-page-size">{t('pagination.rowsPerPage')}</label>
+                  <select
+                    id="schedule-history-page-size"
+                    value={historyPageSizeChoice}
+                    onChange={(e) => {
+                      setHistoryPageSizeChoice(e.target.value);
+                      setHistoryPage(1);
+                    }}
+                  >
+                    {historyPageSizeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="control-group" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span>{t('pagination.pageOf', { page: historyPage, total: historyTotalPages })}</span>
+                  <div className="pager-buttons" style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      className="btn link"
+                      onClick={() => setHistoryPage((prev) => Math.max(1, prev - 1))}
+                      disabled={historyPage <= 1}
+                    >
+                      {t('pagination.previous')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn link"
+                      onClick={() => setHistoryPage((prev) => Math.min(historyTotalPages, prev + 1))}
+                      disabled={historyPage >= historyTotalPages}
+                    >
+                      {t('pagination.next')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="schedule-grid">
-              {historySchedules.map((s) => (
+              {paginatedHistorySchedules.map((s) => (
                 <div key={s.id} className="schedule-item history-item">
                   <div className="schedule-content">
                     <div className="schedule-title">{describeSchedule(s, t, locale)}</div>
