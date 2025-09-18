@@ -363,6 +363,11 @@
     "checkInboxHint": "Pensez à vérifier le dossier spam si vous ne trouvez pas le message.",
     "emailUsageHint": "Nous utilisons votre email pour créer votre espace Link Fixer et regrouper vos analyses. Aucun mot de passe n'est nécessaire.",
     "useDifferentEmail": "Utiliser une autre adresse",
+    "consentTitle": "Autoriser cette connexion",
+    "consentDescription": "Votre site WordPress sera connecté avec l’adresse {{email}}. Aucun email ne sera envoyé.",
+    "consentHint": "En acceptant, vous autorisez Link Fixer à créer un compte pour analyser vos liens.",
+    "acceptConsent": "Autoriser et continuer",
+    "cancelConsent": "Annuler",
     "statusTitle": "État de la connexion",
     "connected": "Connecté",
     "notConnected": "Non connecté",
@@ -390,6 +395,13 @@
     "downloadPdf": "Télécharger PDF",
     "downloading": "Téléchargement…",
     "noScan": "Aucun scan en cours"
+  },
+  "pagination": {
+    "rowsPerPage": "Lignes par page",
+    "showCount": "{{count}}",
+    "pageOf": "Page {{page}} sur {{total}}",
+    "previous": "Précédent",
+    "next": "Suivant"
   },
   "locale": "fr-FR"
 }

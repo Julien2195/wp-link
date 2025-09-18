@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { downloadScanReport } from '../api/endpoints.js';
+import linkify from '../utils/linkify.js';
 
 export default function ReportPreview({ stats, items, onClose, scanId }) {
   const { t } = useTranslation();
@@ -85,13 +86,38 @@ export default function ReportPreview({ stats, items, onClose, scanId }) {
                 <tbody>
                   {items.slice(0, 10).map((l) => (
                     <tr key={l.id}>
-                      <td>{l.url}</td>
+                      <td>
+                        {l.url && l.url.startsWith('http') ? (
+                          <a href={l.url} target="_blank" rel="noreferrer">{l.url}</a>
+                        ) : (
+                          <span>{l.url}</span>
+                        )}
+                      </td>
                       <td>{l.type}</td>
                       <td>{l.status}</td>
                       <td>
-                        {l.sources
-                          ? t(l.sourceCount === 1 ? 'results.sources_one' : 'results.sources_other', { count: l.sourceCount })
-                          : l.source || '-'}
+                        {l.sources ? (
+                          <div>
+                            <div style={{ marginBottom: 6 }}>{t(l.sourceCount === 1 ? 'results.sources_one' : 'results.sources_other', { count: l.sourceCount })}</div>
+                            <div style={{ fontSize: 13 }}>
+                              {Array.isArray(l.sources) && l.sources.length > 0
+                                ? l.sources.slice(0, 3).map((s, i) => (
+                                    <div key={i}>
+                                      {linkify(s).map((chunk, j) =>
+                                        typeof chunk === 'object' && chunk.href ? (
+                                          <a key={j} href={chunk.href} target="_blank" rel="noreferrer">{chunk.href}</a>
+                                        ) : (
+                                          <span key={j}>{chunk}</span>
+                                        ),
+                                      )}
+                                    </div>
+                                  ))
+                                : l.source || '-'}
+                            </div>
+                          </div>
+                        ) : (
+                          l.source || '-'
+                        )}
                       </td>
                     </tr>
                   ))}

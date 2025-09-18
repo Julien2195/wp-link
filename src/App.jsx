@@ -86,20 +86,89 @@ export default function App() {
   const [includeMenus, setIncludeMenus] = useState(true);
   const [includeWidgets, setIncludeWidgets] = useState(true);
   const pollTimerRef = useRef(null);
+  const verificationPollRef = useRef(null);
+  const broadcastChannelRef = useRef(null);
   const isMountedRef = useRef(true);
   const autoConnectAttemptedRef = useRef(false);
 
   useEffect(() => {
     isMountedRef.current = true;
     console.log('[LF] App mounted');
+
+    // Initialiser BroadcastChannel pour communication entre onglets
+    if (typeof window !== 'undefined' && window.BroadcastChannel) {
+      try {
+        broadcastChannelRef.current = new BroadcastChannel('link-fixer-auth');
+        broadcastChannelRef.current.addEventListener('message', (event) => {
+          // Traiter les completions de login
+          if (event.data.type === 'LOGIN_COMPLETED' && isMountedRef.current && !connected) {
+            console.log('[LF] Received login completion via BroadcastChannel:', event.data);
+            setConnected(true);
+            setVerificationStep('form');
+
+            // Arrêter le polling si actif
+            if (verificationPollRef.current) {
+              clearInterval(verificationPollRef.current);
+              verificationPollRef.current = null;
+            }
+
+            // Nettoyer le localStorage
+            localStorage.removeItem(LOGIN_COMPLETED_KEY);
+            localStorage.removeItem(LOGIN_PENDING_KEY);
+
+            // Rafraîchir l'abonnement
+            refreshSubscription().catch(err =>
+              console.warn('[LF] Error refreshing subscription after BroadcastChannel:', err)
+            );
+
+            // Mettre focus sur cet onglet si c'est depuis un nouvel onglet
+            if (event.data.fromNewTab) {
+              // Essayer plusieurs méthodes pour prendre le focus
+              setTimeout(() => {
+                try {
+                  // Méthode 1: Focus direct
+                  window.focus();
+
+                  // Méthode 2: Si la page n'est pas visible, essayer de la rendre visible
+                  if (document.hidden) {
+                    // Créer un petit événement sonore/visuel pour attirer l'attention
+                    document.title = '🎉 Connexion réussie - Link Fixer';
+
+                    // Remettre le titre normal après 3 secondes
+                    setTimeout(() => {
+                      document.title = 'Link Fixer';
+                    }, 3000);
+                  }
+
+                  console.log('[LF] Focused on original tab after new tab login');
+                } catch (focusErr) {
+                  console.warn('[LF] Could not focus window:', focusErr);
+                }
+              }, 500);
+            }
+          }
+        });
+      } catch (err) {
+        console.warn('[LF] BroadcastChannel not available:', err);
+      }
+    }
+
     return () => {
       isMountedRef.current = false;
       if (pollTimerRef.current) {
         clearTimeout(pollTimerRef.current);
         pollTimerRef.current = null;
       }
+      if (verificationPollRef.current) {
+        clearInterval(verificationPollRef.current);
+        verificationPollRef.current = null;
+      }
+      if (broadcastChannelRef.current) {
+        broadcastChannelRef.current.close();
+        broadcastChannelRef.current = null;
+      }
     };
-  }, []);
+  }, [connected, refreshSubscription]);
 
   const processWpConnectOutcome = useCallback(
     (result, source = 'manual-connect') => {
@@ -208,6 +277,119 @@ export default function App() {
     };
   }, []);
 
+  // Polling pour détecter automatiquement la connexion après l'envoi du mail
+  useEffect(() => {
+    if (!isWpPluginContext && verificationStep === 'sent' && !connected) {
+      console.log('[LF] Starting verification polling...');
+
+      const pollForConnection = async () => {
+        try {
+          console.log('[LF] Polling for connection status...');
+          const status = await getConnectionStatus();
+
+          if (status.connected && isMountedRef.current) {
+            console.log('[LF] Connection detected via polling! Updating state...');
+            setConnected(true);
+            setVerificationStep('form');
+
+            if (verificationPollRef.current) {
+              clearInterval(verificationPollRef.current);
+              verificationPollRef.current = null;
+            }
+
+            try {
+              localStorage.setItem(LOGIN_COMPLETED_KEY, JSON.stringify({
+                completedAt: Date.now(),
+                source: 'polling'
+              }));
+              localStorage.removeItem(LOGIN_PENDING_KEY);
+              await refreshSubscription();
+              console.log('[LF] Successfully refreshed subscription after polling detection');
+            } catch (err) {
+              console.warn('[LF] Error refreshing subscription after polling:', err);
+            }
+          }
+        } catch (error) {
+          console.warn('[LF] Verification polling error (non-fatal):', error?.message || error);
+        }
+      };
+
+      // Démarrer le polling toutes les 3 secondes
+      verificationPollRef.current = setInterval(pollForConnection, 3000);
+
+      return () => {
+        if (verificationPollRef.current) {
+          clearInterval(verificationPollRef.current);
+          verificationPollRef.current = null;
+        }
+      };
+    }
+  }, [verificationStep, connected, isWpPluginContext, refreshSubscription]);
+
+  // Communication entre onglets via localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleStorageChange = (e) => {
+      if (e.key === LOGIN_COMPLETED_KEY && e.newValue) {
+        try {
+          const data = JSON.parse(e.newValue);
+          console.log('[LF] Detected login completion from another tab:', data);
+
+          if (isMountedRef.current && !connected) {
+            setConnected(true);
+            setVerificationStep('form');
+
+            // Arrêter le polling si actif
+            if (verificationPollRef.current) {
+              clearInterval(verificationPollRef.current);
+              verificationPollRef.current = null;
+            }
+
+            // Nettoyer le localStorage
+            localStorage.removeItem(LOGIN_COMPLETED_KEY);
+            localStorage.removeItem(LOGIN_PENDING_KEY);
+
+            // Rafraîchir l'abonnement
+            refreshSubscription().catch(err =>
+              console.warn('[LF] Error refreshing subscription after cross-tab detection:', err)
+            );
+
+            // Mettre focus sur cet onglet si c'est depuis un nouvel onglet
+            if (data.fromNewTab && typeof window !== 'undefined') {
+              console.log('[LF] Bringing original tab to focus after new tab login');
+              // Essayer plusieurs méthodes pour prendre le focus
+              setTimeout(() => {
+                try {
+                  // Méthode 1: Focus direct
+                  window.focus();
+
+                  // Méthode 2: Si la page n'est pas visible, essayer de la rendre visible
+                  if (document.hidden) {
+                    // Créer un petit événement visuel pour attirer l'attention
+                    document.title = '🎉 Connexion réussie - Link Fixer';
+
+                    // Remettre le titre normal après 3 secondes
+                    setTimeout(() => {
+                      document.title = 'Link Fixer';
+                    }, 3000);
+                  }
+                } catch (focusErr) {
+                  console.warn('[LF] Could not focus window:', focusErr);
+                }
+              }, 500);
+            }
+          }
+        } catch (err) {
+          console.warn('[LF] Error parsing login completion data:', err);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [connected, refreshSubscription]);
+
   // If URL contains verify_token, call confirmVerification to finalize
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -215,6 +397,157 @@ export default function App() {
     const token = params.get('verify_token') || params.get('token');
     const verifiedFlag = params.get('verified');
     console.log('[LF] Verification effect run; params:', Object.fromEntries(params.entries()));
+
+    // Détecter si on vient d'un lien email et s'il y a déjà un login en attente
+    const isEmailClick = token || verifiedFlag === '1';
+    const hasLoginPending = typeof window !== 'undefined' && localStorage.getItem(LOGIN_PENDING_KEY);
+
+    if (isEmailClick && hasLoginPending) {
+      console.log('[LF] Email click detected with pending login - managing tabs');
+
+      // Approche simple : notifier les autres onglets et essayer de se fermer
+      try {
+        // Notifier immédiatement tous les autres onglets de se connecter
+        if (broadcastChannelRef.current) {
+          broadcastChannelRef.current.postMessage({
+            type: 'LOGIN_COMPLETED',
+            completedAt: Date.now(),
+            source: 'email-verification',
+            fromNewTab: true
+          });
+          console.log('[LF] Notified other tabs via BroadcastChannel');
+        }
+
+        // Fallback localStorage
+        localStorage.setItem(LOGIN_COMPLETED_KEY, JSON.stringify({
+          completedAt: Date.now(),
+          source: 'email-verification',
+          fromNewTab: true
+        }));
+
+        console.log('[LF] Attempting to close this tab and focus original');
+
+        // Essayer de fermer ce nouvel onglet et rediriger vers l'onglet principal
+        setTimeout(() => {
+          // D'abord essayer de fermer cet onglet
+          try {
+            window.close();
+          } catch (closeErr) {
+            console.warn('[LF] Cannot close tab, will show redirect page');
+          }
+
+          // Si on ne peut pas fermer, ou en parallèle, afficher une page de redirection
+          // qui essaie de rediriger vers l'onglet principal
+          document.body.innerHTML = `
+            <div style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
+              font-family: system-ui;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              margin: 0;
+              padding: 0;
+            ">
+              <div style="
+                text-align: center;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                padding: 40px;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                max-width: 400px;
+              ">
+                <div style="font-size: 4rem; margin-bottom: 20px;">✅</div>
+                <h2 style="margin: 0 0 15px 0; font-size: 1.8rem;">Connexion réussie !</h2>
+                <p style="margin: 0 0 20px 0; opacity: 0.9;">
+                  Redirection vers le SaaS en cours...
+                </p>
+                <div style="
+                  width: 40px;
+                  height: 40px;
+                  border: 3px solid rgba(255,255,255,0.3);
+                  border-radius: 50%;
+                  border-top: 3px solid white;
+                  animation: spin 1s linear infinite;
+                  margin: 0 auto;
+                "></div>
+                <style>
+                  @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                  }
+                </style>
+              </div>
+            </div>
+          `;
+
+          // Essayer de rediriger vers l'onglet principal après un court délai
+          setTimeout(() => {
+            try {
+              // Essayer de trouver l'onglet principal et le focus
+              if (window.opener && !window.opener.closed) {
+                console.log('[LF] Focusing opener window');
+                window.opener.focus();
+                // Optionnel: fermer cet onglet après avoir focusé l'autre
+                setTimeout(() => {
+                  try {
+                    window.close();
+                  } catch (_) {}
+                }, 1000);
+              } else {
+                // Si pas d'opener, essayer de naviguer vers l'URL de base du SaaS
+                const baseUrl = window.location.origin;
+                console.log('[LF] Redirecting to base URL:', baseUrl);
+                window.location.href = baseUrl;
+              }
+            } catch (redirectErr) {
+              console.warn('[LF] Could not redirect:', redirectErr);
+              // Afficher un message pour fermer manuellement
+              document.body.innerHTML = `
+                <div style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  height: 100vh;
+                  font-family: system-ui;
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  color: white;
+                  margin: 0;
+                  padding: 0;
+                ">
+                  <div style="
+                    text-align: center;
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 20px;
+                    padding: 40px;
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    max-width: 400px;
+                  ">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">✅</div>
+                    <h2 style="margin: 0 0 15px 0; font-size: 1.8rem;">Connexion réussie !</h2>
+                    <p style="margin: 0 0 15px 0; opacity: 0.9;">
+                      Retournez dans l'onglet principal pour accéder au SaaS.
+                    </p>
+                    <p style="margin: 0; font-size: 0.9rem; opacity: 0.7;">
+                      Cet onglet peut être fermé.
+                    </p>
+                  </div>
+                </div>
+              `;
+            }
+          }, 1500);
+        }, 100);
+
+        // Empêcher le traitement normal de la connexion dans cet onglet
+        return;
+
+      } catch (err) {
+        console.warn('[LF] Error in tab management:', err);
+      }
+    }
 
     // If backend redirected with ?verified=1 (cookies already set), perform a health check
     if (verifiedFlag === '1') {
@@ -244,6 +577,18 @@ export default function App() {
               '[LF] Health check indicates active session — setting connected and refreshing',
             );
             setConnected(true);
+
+            // Marquer la connexion comme terminée pour les autres onglets
+            try {
+              localStorage.setItem(LOGIN_COMPLETED_KEY, JSON.stringify({
+                completedAt: Date.now(),
+                source: 'verified-redirect'
+              }));
+              localStorage.removeItem(LOGIN_PENDING_KEY);
+            } catch (storageErr) {
+              console.warn('[LF] Unable to set login completion flag:', storageErr);
+            }
+
             try {
               await refreshSubscription();
               console.log('[LF] refreshSubscription() completed from verified=1 health check');
@@ -281,6 +626,18 @@ export default function App() {
               } catch (_) {}
             }
             setConnected(true);
+
+            // Marquer la connexion comme terminée pour les autres onglets
+            try {
+              localStorage.setItem(LOGIN_COMPLETED_KEY, JSON.stringify({
+                completedAt: Date.now(),
+                source: 'email-verification'
+              }));
+              localStorage.removeItem(LOGIN_PENDING_KEY);
+            } catch (storageErr) {
+              console.warn('[LF] Unable to set login completion flag:', storageErr);
+            }
+
             try {
               await refreshSubscription();
               console.log('[LF] refreshSubscription() completed after token confirm');

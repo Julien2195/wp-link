@@ -363,6 +363,11 @@
     "checkInboxHint": "Be sure to check your spam or promotions folder if you don’t see it right away.",
     "emailUsageHint": "We use your email to create your Link Fixer space and keep your scans together. No password required.",
     "useDifferentEmail": "Use a different email",
+    "consentTitle": "Authorize this connection",
+    "consentDescription": "Your WordPress site will be connected with the email address {{email}}. No email will be sent.",
+    "consentHint": "By accepting, you authorize Link Fixer to create an account to analyze your links.",
+    "acceptConsent": "Authorize and continue",
+    "cancelConsent": "Cancel",
     "statusTitle": "Connection status",
     "connected": "Connected",
     "notConnected": "Not connected",
@@ -390,6 +395,13 @@
     "downloadPdf": "Download PDF",
     "downloading": "Downloading…",
     "noScan": "No scan in progress"
+  },
+  "pagination": {
+    "rowsPerPage": "Rows per page",
+    "showCount": "{{count}}",
+    "pageOf": "Page {{page}} of {{total}}",
+    "previous": "Previous",
+    "next": "Next"
   },
   "locale": "en-US"
 }
