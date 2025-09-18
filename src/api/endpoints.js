@@ -236,15 +236,10 @@ export async function updateSchedule(id, payload) {
 
 // Delete schedule
 export async function deleteSchedule(id) {
-  return tryRequest(
-    () => api.delete(`/schedules/${id}`),
-    () => {
-      const items = loadLocalSchedules();
-      const next = items.filter((s) => s.id !== id);
-      saveLocalSchedules(next);
-      return { ok: true };
-    }
-  );
+  // Pour la suppression, on ne veut pas de fallback local car cela masque les erreurs
+  // de suppression en base de données
+  const { data } = await api.delete(`/schedules/${id}`);
+  return data;
 }
 
 // Clear executed one-time schedules history

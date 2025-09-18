@@ -49,7 +49,9 @@ export default function ReportPreview({ stats, items, onClose, scanId }) {
           </button>
         </div>
         <div className="modal-body">
-          <p>{t('report.dateLabel')}: {time}</p>
+          <p>
+            {t('report.dateLabel')}: {time}
+          </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
             <div className="panel">
               <div className="panel-body">
@@ -74,7 +76,7 @@ export default function ReportPreview({ stats, items, onClose, scanId }) {
           <div style={{ marginTop: 16 }}>
             <h4>{t('report.sampleTitle')}</h4>
             <div className="table-wrap">
-              <table className="results-table">
+              <table className="results-table report-preview-table">
                 <thead>
                   <tr>
                     <th>{t('results.table.url')}</th>
@@ -86,9 +88,11 @@ export default function ReportPreview({ stats, items, onClose, scanId }) {
                 <tbody>
                   {items.slice(0, 10).map((l) => (
                     <tr key={l.id}>
-                      <td>
+                      <td className="url url-cell">
                         {l.url && l.url.startsWith('http') ? (
-                          <a href={l.url} target="_blank" rel="noreferrer">{l.url}</a>
+                          <a href={l.url} target="_blank" rel="noreferrer">
+                            {l.url}
+                          </a>
                         ) : (
                           <span>{l.url}</span>
                         )}
@@ -98,14 +102,28 @@ export default function ReportPreview({ stats, items, onClose, scanId }) {
                       <td>
                         {l.sources ? (
                           <div>
-                            <div style={{ marginBottom: 6 }}>{t(l.sourceCount === 1 ? 'results.sources_one' : 'results.sources_other', { count: l.sourceCount })}</div>
+                            <div style={{ marginBottom: 6 }}>
+                              {t(
+                                l.sourceCount === 1
+                                  ? 'results.sources_one'
+                                  : 'results.sources_other',
+                                { count: l.sourceCount },
+                              )}
+                            </div>
                             <div style={{ fontSize: 13 }}>
                               {Array.isArray(l.sources) && l.sources.length > 0
                                 ? l.sources.slice(0, 3).map((s, i) => (
                                     <div key={i}>
                                       {linkify(s).map((chunk, j) =>
                                         typeof chunk === 'object' && chunk.href ? (
-                                          <a key={j} href={chunk.href} target="_blank" rel="noreferrer">{chunk.href}</a>
+                                          <a
+                                            key={j}
+                                            href={chunk.href}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                          >
+                                            {chunk.href}
+                                          </a>
                                         ) : (
                                           <span key={j}>{chunk}</span>
                                         ),

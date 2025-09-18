@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       LinkFixer SEO
  * Description:       Scanner de liens pour WordPress: détecte les liens brisés, fournit des rapports détaillés (PDF), historique et planification des scans. Peut se connecter à LinkFixer Cloud pour exécuter les analyses — aucune donnée n'est envoyée sans votre consentement.
- * Version:           0.1.0
+ * Version:           0.1.1
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Julien LEMAITRE

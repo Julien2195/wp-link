@@ -121,3 +121,26 @@
     color: var(--color-text-lighter);
   }
 }
+
+.report-preview-table {
+  table-layout: fixed;
+
+  th:first-child,
+  td:first-child {
+    width: 45%;
+  }
+
+  .url-cell {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .url-cell a {
+    color: var(--color-primary);
+  }
+}
+
+.theme-dark .report-preview-table a,
+.theme-dark .report-preview-table a:visited {
+  color: var(--color-text);
+}
