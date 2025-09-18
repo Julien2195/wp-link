@@ -243,7 +243,7 @@
       "days": "{{count}} jours",
       "included": "Inclus",
       "notIncluded": "Non inclus"
-  }
+    }
   },
   "privacy": {
     "title": "Politique de confidentialité",
@@ -352,6 +352,31 @@
       "payAmount": "Payer {{amount}} {{currency}}"
     }
   },
+  "connection": {
+    "title": "Se connecter à LinkFixer Cloud",
+    "description": "Avant d'utiliser le scanner, connectez votre site à LinkFixer Cloud pour activer les fonctionnalités. Cette action enregistre votre site et génère une clé d'accès (aucune donnée n'est partagée sans votre accord).",
+    "connectButton": "Se connecter",
+    "sendVerificationButton": "Envoyer le mail de vérification",
+    "resendVerificationButton": "Renvoyer le mail",
+    "checkInboxTitle": "Vérifiez vos emails",
+    "checkInboxBody": "Nous avons envoyé un lien d’activation à {{email}}. Ouvrez cet email et cliquez sur le lien pour terminer la vérification.",
+    "checkInboxHint": "Pensez à vérifier le dossier spam si vous ne trouvez pas le message.",
+    "emailUsageHint": "Nous utilisons votre email pour créer votre espace Link Fixer et regrouper vos analyses. Aucun mot de passe n'est nécessaire.",
+    "useDifferentEmail": "Utiliser une autre adresse",
+    "consentTitle": "Autoriser cette connexion",
+    "consentDescription": "Votre site WordPress sera connecté avec l’adresse {{email}}. Aucun email ne sera envoyé.",
+    "consentHint": "En acceptant, vous autorisez Link Fixer à créer un compte pour analyser vos liens.",
+    "acceptConsent": "Autoriser et continuer",
+    "cancelConsent": "Annuler",
+    "statusTitle": "État de la connexion",
+    "connected": "Connecté",
+    "notConnected": "Non connecté",
+    "error": "La connexion a échoué. Veuillez réessayer.",
+    "disconnectButton": "Supprimer le compte",
+    "disconnectConfirm": "Voulez-vous vraiment supprimer le compte lié et vous déconnecter ? Vous devrez vous reconnecter pour utiliser le service.",
+    "disconnectSuccess": "Compte supprimé localement. Vous êtes déconnecté.",
+    "disconnectError": "Échec de la suppression. Veuillez réessayer."
+  },
   "errors": {
     "general": "Une erreur s'est produite",
     "network": "Erreur de réseau",
@@ -370,6 +395,13 @@
     "downloadPdf": "Télécharger PDF",
     "downloading": "Téléchargement…",
     "noScan": "Aucun scan en cours"
+  },
+  "pagination": {
+    "rowsPerPage": "Lignes par page",
+    "showCount": "{{count}}",
+    "pageOf": "Page {{page}} sur {{total}}",
+    "previous": "Précédent",
+    "next": "Suivant"
   },
   "locale": "fr-FR"
 }

@@ -1,62 +1,75 @@
 import axios from 'axios';
 
-// Base URL configurable via Vite env (e.g. VITE_API_BASE_URL=https://api.local/api)
-// Fallback to '/api' so local backends at http://localhost:8000/api work by default
-export const BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
+// Detect runtime context
+const isBrowser = typeof window !== 'undefined';
+const isWpPluginContext = isBrowser && !!window.LINK_FIXER_SETTINGS;
+const isWebAppContext = !isWpPluginContext;
+
+// Base URL selection
+const PROXY_BASE = '/wp-json/link-fixer/v1';
+const ENV_BASE = import.meta.env.VITE_API_BASE_URL;
+// Normalize base: ensure leading '/' for relative bases to avoid resolving under current path
+const RAW_BASE = isWpPluginContext ? PROXY_BASE : (ENV_BASE || PROXY_BASE);
+const NORM_BASE = (RAW_BASE && !/^https?:\/\//i.test(RAW_BASE) && RAW_BASE[0] !== '/') ? ('/' + RAW_BASE) : RAW_BASE;
+export const BASE_URL = (NORM_BASE || PROXY_BASE).replace(/\/$/, '');
+
+// Client identification for support/observability
+const CLIENT_NAME = isWpPluginContext ? 'linkfixer-wp' : (import.meta.env.VITE_CLIENT_LABEL || 'linkfixer-web');
+const CLIENT_VERSION = import.meta.env.VITE_APP_VERSION || 'dev';
+
+function readCookie(name) {
+  if (!isBrowser) return null;
+  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)'));
+  return m ? decodeURIComponent(m[1]) : null;
+}
 
 const api = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
+    'X-Client': CLIENT_NAME,
+    'X-Client-Version': CLIENT_VERSION,
   },
-  // Set to true if your backend uses cookies/session on same origin
-  withCredentials: false,
+  // Always include cookies (WP REST cookie auth or BFF HttpOnly tokens)
+  withCredentials: true,
   timeout: 15000,
 });
 
-// Optional: attach auth/nonce if present (WordPress or custom bearer)
+// Request interceptor: attach context-specific headers safely.
 api.interceptors.request.use((config) => {
+  const headers = { ...(config.headers || {}) };
+
+  // Locale header for backend translations (optional)
   try {
-    const token = localStorage.getItem('wpls.token');
-    if (token) {
-      config.headers = { ...config.headers, Authorization: `Bearer ${token}` };
+    const lang = isBrowser ? localStorage.getItem('wpls.language') : null;
+    if (lang && ['en', 'fr', 'es'].includes(lang)) {
+      headers['X-Locale'] = lang;
     }
+  } catch (_) {}
 
-    // Attach current UI locale for backend translations
-    const lang = localStorage.getItem('wpls.language');
-    if (lang && (lang === 'en' || lang === 'fr')) {
-      config.headers = { ...config.headers, 'X-Locale': lang };
-    }
-  } catch (_) {
-    // ignore
+  // Never attach or forward API keys from the browser
+  delete headers['Authorization'];
+  delete headers['authorization'];
+  delete headers['X-API-Key'];
+  delete headers['x-api-key'];
+
+  // WordPress REST nonce (cookie authentication) in plugin context
+  if (isWpPluginContext) {
+    const wpNonce = (isBrowser && ((window.wpApiSettings && window.wpApiSettings.nonce) || (window.LINK_FIXER_SETTINGS && window.LINK_FIXER_SETTINGS.restNonce))) || null;
+    if (wpNonce) headers['X-WP-Nonce'] = wpNonce;
   }
 
-    // Utiliser la clé API pour l'authentification
-    if (typeof window !== 'undefined' && window.WPLS_SETTINGS && window.WPLS_SETTINGS.apiKey) {
-        config.headers = { ...config.headers, 'X-API-Key': window.WPLS_SETTINGS.apiKey };
+  // Double-submit CSRF in web app context: lf_csrf cookie -> x-lf-csrf header
+  if (isWebAppContext) {
+    const method = String(config.method || 'get').toUpperCase();
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+      const csrf = readCookie('lf_csrf');
+      if (csrf) headers['x-lf-csrf'] = csrf;
     }
-
-  // WordPress REST can require a nonce header
-  // If you enqueue with wp_localize_script and expose wpApiSettings.nonce
-  const wpNonce = (typeof window !== 'undefined' && window.wpApiSettings && window.wpApiSettings.nonce) || null;
-  if (wpNonce) {
-    config.headers = { ...config.headers, 'X-WP-Nonce': wpNonce };
   }
 
-    // Ajouter les informations du site WordPress pour identifier l'utilisateur (en backup)
-    if (typeof window !== 'undefined' && window.WPLS_SETTINGS) {
-        const { adminEmail, siteUrl } = window.WPLS_SETTINGS;
-        if (adminEmail) {
-            config.headers = { ...config.headers, 'X-WP-User-Email': adminEmail };
-        }
-        if (siteUrl) {
-            config.headers = { ...config.headers, 'X-WP-Site-URL': siteUrl };
-        }
-    } else {
-        console.error('WPLS_SETTINGS not found:', window.WPLS_SETTINGS);
-    }
-
+  config.headers = headers;
   return config;
 });
 

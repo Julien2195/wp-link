@@ -1,11 +1,32 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSubscription } from '../hooks/useSubscription.js';
+import { getUserProfile } from '../api/endpoints.js';
+import { useEffect, useState } from 'react';
 import '../../styles/Sidebar.scss';
 
 export default function Sidebar({ active = 'dashboard', onNavigate }) {
   const { t } = useTranslation();
   const { isPro, isFree, subscription } = useSubscription();
+  const [email, setEmail] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const profile = await getUserProfile();
+        if (mounted && profile && profile.user && profile.user.email) {
+          setEmail(profile.user.email);
+          console.log('eeee' + profile.user.email);
+        }
+      } catch (err) {
+        console.log('Error getting profile:', err);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const nav = (key) => (e) => {
     e.preventDefault();
@@ -18,7 +39,7 @@ export default function Sidebar({ active = 'dashboard', onNavigate }) {
         <span className="logo" aria-hidden>
           🔗
         </span>
-        <span className="name">Link Fixer</span>
+        <span className="name">LinkFixer SEO</span>
       </div>
 
       {/* Affichage du statut d'abonnement */}
@@ -36,15 +57,20 @@ export default function Sidebar({ active = 'dashboard', onNavigate }) {
         <div style={{ fontSize: 12, fontWeight: 600, color: isPro ? '#2d5a2d' : '#1a365d' }}>
           {isPro ? `✓ ${t('subscription.proPlan')}` : t('subscription.freePlan')}
         </div>
-        {isPro && subscription?.renewsAt && (
+        {subscription?.renewsAt && (
           <div style={{ fontSize: 10, color: '#666', marginTop: 2 }}>
-            {t('subscription.expiresOn')}{' '}
+            {subscription.isCancelling
+              ? t('subscription.expiresOn')
+              : isPro
+                ? t('settings.subscription.renewal')
+                : t('subscription.expiresOn')}{' '}
             {new Date(subscription.renewsAt).toLocaleDateString(t('locale'))}
           </div>
         )}
       </div>
 
       <nav className="menu">
+        {email && <div className="sidebar-email">{email}</div>}
         <a
           className={`item ${active === 'dashboard' ? 'active' : ''}`}
           href="#dashboard"
@@ -60,6 +86,13 @@ export default function Sidebar({ active = 'dashboard', onNavigate }) {
           {t('navigation.history')}
         </a>
         <a
+          className={`item ${active === 'scheduler' ? 'active' : ''}`}
+          href="#scheduler"
+          onClick={nav('scheduler')}
+        >
+          {t('navigation.scheduler')}
+        </a>
+        <a
           className={`item ${active === 'settings' ? 'active' : ''}`}
           href="#settings"
           onClick={nav('settings')}
@@ -68,8 +101,9 @@ export default function Sidebar({ active = 'dashboard', onNavigate }) {
         </a>
         <a
           className={`item ${active === 'privacy' ? 'active' : ''}`}
-          href="#privacy"
-          onClick={nav('privacy')}
+          href="https://linkfixer.io/politique-confidentialite"
+          target="_blank"
+          rel="noopener noreferrer"
         >
           {t('navigation.privacy')}
         </a>

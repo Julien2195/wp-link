@@ -1,9 +1,65 @@
 import api from './client';
 
+// Explicit opt-in: connect WP site to remote service and store API key on server
+// Explicit opt-in: connect account.
+// - In WP plugin context: POST /connect without body (server uses admin email)
+// - In web app context (BFF): POST /connect with { email } payload
+export async function connectAccount(payload) {
+  const { data } = await api.post('/connect', payload || undefined);
+  return data; // { ok: true } or { requires_consent: true, email: string }
+}
+
+// WordPress consent endpoint - called when user gives consent in WP context
+export async function giveConsent() {
+  const { data } = await api.post('/consent', { consent: true });
+  return data; // { ok: true, auto_connected: true, user: {...} }
+}
+
+// Check connection status (whether API key exists server-side)
+export async function getConnectionStatus() {
+  const { data } = await api.get('/status');
+  return data; // { connected: boolean }
+}
+
+export async function disconnectAccount() {
+  const { data } = await api.post('/disconnect');
+  return data; // { ok: true }
+}
+
+export async function deleteAccount() {
+  const { data } = await api.delete('/delete-account');
+  return data; // { ok: true }
+}
+
+// User profile (debug/user context)
+export async function getUserProfile() {
+  const { data } = await api.get('/users/profile');
+  return data; // { user: { id, email, plan, apiKey?, ... } }
+}
+
+// Verification flows
+export async function sendVerification(email) {
+    const { data } = await api.post('/users/send-verification', { email });
+    return data; // { ok: true }
+}
+
+export async function confirmVerification(token) {
+    const { data } = await api.get('/users/verify', { params: { token } });
+    return data; // { ok: true, user: { id, email, api_key } }
+}
+
 // Healthcheck
 export async function getHealth() {
   const { data } = await api.get('/health');
   return data; // { ok: true }
+}
+
+export async function refreshAuth() {
+  // On considère tout 2xx comme un refresh OK.
+  const res = await api.post('/auth/refresh');
+  // Si le backend renvoie un body, on le propage. Sinon, on normalise { ok:true }.
+  const data = res?.data ?? {};
+  return { ok: true, ...data };
 }
 
 // Create a new scan
@@ -79,13 +135,15 @@ export async function updateSubscription(plan) {
 }
 
 export async function cancelSubscription() {
-    const { data } = await api.post('/me/subscription/cancel');
-    return data;
+  // Backend expects a single endpoint with plan='free' to schedule cancellation
+  const { data } = await api.post('/me/subscription', { plan: 'free' });
+  return data;
 }
 
 export async function resumeSubscription() {
-    const { data } = await api.post('/me/subscription/resume');
-    return data;
+  // Backend expects a single endpoint with action='resume' to revert cancellation
+  const { data } = await api.post('/me/subscription', { action: 'resume' });
+  return data;
 }
 
 // Billing — create an Embedded Checkout session (client_secret)
@@ -178,15 +236,10 @@ export async function updateSchedule(id, payload) {
 
 // Delete schedule
 export async function deleteSchedule(id) {
-  return tryRequest(
-    () => api.delete(`/schedules/${id}`),
-    () => {
-      const items = loadLocalSchedules();
-      const next = items.filter((s) => s.id !== id);
-      saveLocalSchedules(next);
-      return { ok: true };
-    }
-  );
+  // Pour la suppression, on ne veut pas de fallback local car cela masque les erreurs
+  // de suppression en base de données
+  const { data } = await api.delete(`/schedules/${id}`);
+  return data;
 }
 
 // Clear executed one-time schedules history

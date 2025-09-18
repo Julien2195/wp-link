@@ -4,14 +4,17 @@ import UnlockButton from './UnlockButton.jsx';
 import UpgradeModal from './UpgradeModal.jsx';
 import PaymentModal from './PaymentModal.jsx';
 import CancelSubscriptionButton from './CancelSubscriptionButton.jsx';
-import LanguageSelector from './LanguageSelector.jsx';
-import { createEmbeddedCheckoutSession, createHostedCheckoutSession } from '../api/endpoints.js';
+import {
+  createEmbeddedCheckoutSession,
+  createHostedCheckoutSession,
+  deleteAccount,
+} from '../api/endpoints.js';
 import { useSubscription } from '../hooks/useSubscription.js';
-import Scheduler from './Scheduler.jsx';
 
 export default function Settings({ theme, onChangeTheme }) {
   const { t, i18n } = useTranslation();
   const { isPro, isFree, subscription } = useSubscription();
+  const isWpPluginContext = typeof window !== 'undefined' && !!window.LINK_FIXER_SETTINGS;
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [checkoutSecret, setCheckoutSecret] = useState(null);
@@ -23,6 +26,61 @@ export default function Settings({ theme, onChangeTheme }) {
         <p>{t('settings.description')}</p>
       </div>
       <div className="panel-body">
+        {/* Gestion du compte LinkFixer Cloud */}
+        <div
+          id="lf-consent"
+          style={{
+            marginBottom: 16,
+            padding: 12,
+            backgroundColor: 'var(--color-bg-secondary)',
+            borderRadius: 8,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}
+        >
+          <div>
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>{t('connection.statusTitle')}</div>
+            <div style={{ opacity: 0.85 }}>{t('connection.connected')}</div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              className="btn danger"
+              onClick={async () => {
+                if (!confirm(t('connection.disconnectConfirm'))) return;
+                try {
+                  await deleteAccount();
+                  // Redirige vers la carte de consentement pour recréer un compte
+                  const w = typeof window !== 'undefined' ? window : null;
+                  if (w && w.location) {
+                    const { location } = w;
+                    const origin = location.origin;
+                    if (isWpPluginContext) {
+                      const path = location.pathname;
+                      const adminIndex = path.indexOf('/wp-admin/');
+                      const adminBase =
+                        adminIndex >= 0
+                          ? origin + path.slice(0, adminIndex + '/wp-admin/'.length)
+                          : origin + '/wp-admin/';
+                      const target = `${adminBase}admin.php?page=linkfixer-seo`;
+                      w.location.assign(target);
+                    } else {
+                      w.location.assign(origin || '/');
+                    }
+                    return;
+                  }
+                  alert(t('connection.disconnectSuccess'));
+                } catch (_) {
+                  alert(t('connection.disconnectError'));
+                }
+              }}
+            >
+              {t('connection.disconnectButton')}
+            </button>
+          </div>
+        </div>
+
         {/* Bouton upgrade seulement si version gratuite */}
         {isFree && (
           <div className="unlock-cta" style={{ marginBottom: 16 }}>
@@ -75,51 +133,6 @@ export default function Settings({ theme, onChangeTheme }) {
             {isPro && <CancelSubscriptionButton />}
           </div>
         )}
-
-        <div className="form-grid">
-          <div>
-            <label>{t('settings.general.language')}</label>
-            <div className="form-row">
-              <LanguageSelector />
-            </div>
-          </div>
-
-          <div>
-            <label>{t('settings.general.theme')}</label>
-            <div className="form-row">
-              <label className="switch">
-                <input
-                  type="radio"
-                  name="theme"
-                  checked={theme === 'system'}
-                  onChange={() => onChangeTheme('system')}
-                />
-                <span>{t('settings.general.themes.system')}</span>
-              </label>
-              <label className="switch">
-                <input
-                  type="radio"
-                  name="theme"
-                  checked={theme === 'light'}
-                  onChange={() => onChangeTheme('light')}
-                />
-                <span>{t('settings.general.themes.light')}</span>
-              </label>
-              <label className="switch">
-                <input
-                  type="radio"
-                  name="theme"
-                  checked={theme === 'dark'}
-                  onChange={() => onChangeTheme('dark')}
-                />
-                <span>{t('settings.general.themes.dark')}</span>
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="section" style={{ marginTop: 16 }}>
-        <Scheduler />
       </div>
       {showUpgrade && (
         <UpgradeModal

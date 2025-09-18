@@ -243,7 +243,7 @@
       "days": "{{count}} days",
       "included": "Included",
       "notIncluded": "Not included"
-  }
+    }
   },
   "privacy": {
     "title": "Privacy Policy",
@@ -352,6 +352,31 @@
       "payAmount": "Pay {{amount}} {{currency}}"
     }
   },
+  "connection": {
+    "title": "Connect to LinkFixer Cloud",
+    "description": "Before using the scanner, connect your site to LinkFixer Cloud to enable features. This action registers your site and generates an access key (no data is shared without your consent).",
+    "connectButton": "Connect",
+    "sendVerificationButton": "Send verification email",
+    "resendVerificationButton": "Resend email",
+    "checkInboxTitle": "Check your email",
+    "checkInboxBody": "We sent an activation link to {{email}}. Open it and click the link to finish verification.",
+    "checkInboxHint": "Be sure to check your spam or promotions folder if you don’t see it right away.",
+    "emailUsageHint": "We use your email to create your Link Fixer space and keep your scans together. No password required.",
+    "useDifferentEmail": "Use a different email",
+    "consentTitle": "Authorize this connection",
+    "consentDescription": "Your WordPress site will be connected with the email address {{email}}. No email will be sent.",
+    "consentHint": "By accepting, you authorize Link Fixer to create an account to analyze your links.",
+    "acceptConsent": "Authorize and continue",
+    "cancelConsent": "Cancel",
+    "statusTitle": "Connection status",
+    "connected": "Connected",
+    "notConnected": "Not connected",
+    "error": "Connection failed. Please try again.",
+    "disconnectButton": "Delete account",
+    "disconnectConfirm": "Do you really want to delete the linked account and disconnect? You will need to reconnect to use the service.",
+    "disconnectSuccess": "Account removed locally. You are disconnected.",
+    "disconnectError": "Failed to remove account. Please try again."
+  },
   "errors": {
     "general": "An error occurred",
     "network": "Network error",
@@ -370,6 +395,13 @@
     "downloadPdf": "Download PDF",
     "downloading": "Downloading…",
     "noScan": "No scan in progress"
+  },
+  "pagination": {
+    "rowsPerPage": "Rows per page",
+    "showCount": "{{count}}",
+    "pageOf": "Page {{page}} of {{total}}",
+    "previous": "Previous",
+    "next": "Next"
   },
   "locale": "en-US"
 }

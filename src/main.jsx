@@ -6,7 +6,7 @@ import { LanguageProvider } from './contexts/LanguageContext.jsx';
 import './i18n'; // Initialisation d'i18next
 import '../styles/App.scss';
 
-const container = document.getElementById('wp-link-fixer-root');
+const container = document.getElementById('link-fixer-root');
 if (container) {
   const root = createRoot(container);
   root.render(
@@ -17,4 +17,3 @@ if (container) {
     </LanguageProvider>,
   );
 }
-

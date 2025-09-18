@@ -41,8 +41,8 @@
       top: calc(100% + 4px);
       right: 0;
       min-width: 110px;
-      background: transparent;
-      border: 1px solid #5b8def;
+background: var(--bg-primary);
+    border: 1px solid var(--border-color);
       border-radius: 6px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       opacity: 0;
@@ -59,28 +59,29 @@
         gap: 0.75rem;
         padding: 0.75rem;
         border: none;
-        background: transparent;
-        color: var(--text-primary);
+background: var(--bg-contrast);
+    /* visible background by default, contrast with theme */
+    color: var(--bg-contrast-text);
         cursor: pointer;
-        transition: background-color 0.2s ease, color 0.2s ease;
+        transition: background-color 0.12s ease, color 0.12s ease;
         font-size: 0.875rem;
         text-align: left;
-
-        &:hover {
-          background: color-mix(in srgb, #5b8def 15%, transparent);
-        }
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            /* separator between options */
 
         &:first-child {
           border-top-left-radius: 5px;
           border-top-right-radius: 5px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
         }
 
         &:last-child {
           border-bottom-left-radius: 5px;
           border-bottom-right-radius: 5px;
+        border-bottom: none;
         }
 
-        .flag {
+  .flag {
           font-size: 1.1rem;
           line-height: 1;
           background: transparent;
@@ -116,7 +117,7 @@
 
         &:hover {
           border-color: var(--primary-color);
-          background: var(--bg-secondary-dark);
+        background: var(--bg-contrast);
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
@@ -127,16 +128,14 @@
       }
 
       .language-options {
-        background: transparent;
-        border-color: #5b8def;
+background: var(--bg-primary-dark);
+    border-color: var(--border-color-dark);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 
         .language-option {
-          color: var(--text-primary-dark);
-
-          &:hover {
-            background: color-mix(in srgb, #5b8def 20%, transparent);
-          }
+        color: var(--bg-contrast-text);
+            background: var(--bg-secondary-dark);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 
           .flag {
             background: transparent;

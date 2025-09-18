@@ -47,3 +47,20 @@
   color: var(--color-text);
   background: color-mix(in srgb, var(--color-primary) 18%, transparent);
 }
+
+.sidebar-email {
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--color-accent);
+}
+
+/* Scan form input color adjustments (placeholder + text) */
+#lf-site {
+    color: var(--color-text);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+}
+
+#lf-site::placeholder {
+    color: color-mix(in srgb, var(--color-text) 48%, transparent);
+}

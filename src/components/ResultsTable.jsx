@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import '../../styles/ResultsTable.scss';
+import linkify from '../utils/linkify.js';
 
 function StatusBadge({ status }) {
   const { t } = useTranslation();
@@ -99,13 +100,27 @@ export default function ResultsTable({ items, total, filters, onChangeFilters })
                     {l.sources ? (
                       <div className="sources-grouped">
                         <span className="source-count">
-                          {l.sourceCount} {t('results.sources', { count: l.sourceCount })}
+                          {t(l.sourceCount === 1 ? 'results.sources_one' : 'results.sources_other', { count: l.sourceCount })}
                         </span>
                         {l.sources.length > 0 && (
                           <div className="source-list">
                             {l.sources.slice(0, 3).map((source, idx) => (
                               <div key={idx} className="source-item">
-                                {source}
+                                {Array.isArray(source)
+                                  ? source.map((s, i) =>
+                                      typeof s === 'object' && s.href ? (
+                                        <a key={i} href={s.href} target="_blank" rel="noreferrer">{s.href}</a>
+                                      ) : (
+                                        <span key={i}>{s}</span>
+                                      ),
+                                    )
+                                  : linkify(source).map((chunk, i) =>
+                                      typeof chunk === 'object' && chunk.href ? (
+                                        <a key={i} href={chunk.href} target="_blank" rel="noreferrer">{chunk.href}</a>
+                                      ) : (
+                                        <span key={i}>{chunk}</span>
+                                      ),
+                                    )}
                               </div>
                             ))}
                             {l.sources.length > 3 && (

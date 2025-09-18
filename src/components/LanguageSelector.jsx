@@ -14,6 +14,11 @@ const LanguageSelector = () => {
       code: 'en',
       name: 'English',
       flag: '🇺🇸'
+    },
+    {
+      code: 'es',
+      name: 'Español',
+      flag: '🇪🇸'
     }
   ];
 
@@ -21,13 +26,13 @@ const LanguageSelector = () => {
     changeLanguage(languageCode);
   };
 
+  const currentFlag = languages.find(lang => lang.code === currentLanguage)?.flag || '🇺🇸';
+
   return (
     <div className="language-selector">
       <div className="language-dropdown">
         <button className="current-language">
-          <span className="flag">
-            {languages.find(lang => lang.code === currentLanguage)?.flag || '🇺🇸'}
-          </span>
+          <span className="flag">{currentFlag}</span>
         </button>
         <div className="language-options">
           {languages
