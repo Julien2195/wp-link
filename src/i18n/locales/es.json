@@ -1,0 +1,407 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "refresh": "Actualizar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "import": "Importar",
+    "settings": "Configuración",
+    "help": "Ayuda",
+    "documentation": "Documentación"
+  },
+  "navigation": {
+    "dashboard": "Panel",
+    "history": "Historial",
+    "settings": "Configuración",
+    "privacy": "Política de privacidad",
+    "scheduler": "Planificador"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "scanForm": {
+      "title": "Escáner de enlaces",
+      "description": "Análisis de enlaces internos y externos",
+      "urlPlaceholder": "https://example.com o deja vacío para analizar todo el sitio",
+      "startScan": "Iniciar escaneo",
+      "scanning": "Analizando...",
+      "stopScan": "Detener escaneo",
+      "includeMenus": "Incluir menús",
+      "includeWidgets": "Incluir widgets",
+      "globalScan": "Escaneo global del sitio",
+      "globalScanDescription": "Analiza todos los enlaces de entradas, páginas, menús y widgets",
+      "limitMessage": "Versión gratuita: análisis limitado a las primeras {{max}} URL encontradas.",
+      "limitMessageEnd": "para analizar todas las URL de tu sitio."
+    },
+    "stats": {
+      "totalLinks": "Enlaces totales",
+      "brokenLinks": "Enlaces rotos",
+      "okLinks": "Enlaces válidos",
+      "scanning": "Analizando"
+    }
+  },
+  "results": {
+    "title": "Resultados del escaneo",
+    "noResults": "No se encontraron resultados",
+    "resultsShown": "resultados mostrados de",
+    "searchPlaceholder": "Busca una URL o fuente…",
+    "sources_0": "{{count}} origen",
+    "sources_one": "{{count}} origen",
+    "sources_other": "{{count}} orígenes",
+    "moreOthers": "+ {{count}} otros",
+    "filters": {
+      "all": "Todos",
+      "internal": "Internos",
+      "external": "Externos",
+      "ok": "Válidos",
+      "broken": "Rotos",
+      "sortBy": "Ordenar por",
+      "url": "URL",
+      "status": "Estado",
+      "lastChecked": "Última comprobación"
+    },
+    "table": {
+      "url": "URL",
+      "status": "Estado",
+      "type": "Tipo",
+      "foundOn": "Encontrado en",
+      "lastChecked": "Última comprobación",
+      "actions": "Acciones"
+    },
+    "status": {
+      "ok": "Válido",
+      "broken": "Roto",
+      "redirect": "Redirección",
+      "internal": "Interno",
+      "external": "Externo"
+    }
+  },
+  "history": {
+    "title": "Historial de escaneos",
+    "description": "Lista de los escaneos recientes realizados",
+    "noHistory": "Sin historial de escaneos",
+    "noScans": "No se encontraron escaneos. Inicia tu primer escaneo desde el panel",
+    "clearHistory": "Vaciar historial",
+    "confirmClear": "¿Realmente quieres eliminar todo el historial de escaneos? Esta acción es irreversible.",
+    "proFeatureDescription": "El historial de escaneos solo está disponible con el plan Pro",
+    "table": {
+      "date": "Fecha",
+      "status": "Estado",
+      "totalLinks": "Enlaces totales",
+      "redirects": "Redirecciones",
+      "actions": "Acciones"
+    },
+    "scanDate": "Fecha del escaneo",
+    "totalLinks": "Enlaces totales",
+    "brokenLinks": "Enlaces rotos",
+    "actions": "Acciones",
+    "viewReport": "Ver informe",
+    "deleteReport": "Eliminar informe"
+  },
+  "settings": {
+    "title": "Configuración",
+    "description": "Personaliza la apariencia y las preferencias",
+    "general": {
+      "title": "General",
+      "theme": "Tema",
+      "themes": {
+        "system": "Sistema",
+        "light": "Claro",
+        "dark": "Oscuro"
+      },
+      "language": "Idioma"
+    },
+    "subscription": {
+      "current": "Suscripción actual",
+      "plan": "Plan",
+      "cancellationScheduled": "Cancelación programada",
+      "renewal": "Renovación"
+    },
+    "scanning": {
+      "title": "Configuración del escaneo",
+      "timeout": "Tiempo de espera (segundos)",
+      "userAgent": "Agente de usuario",
+      "followRedirects": "Seguir redirecciones",
+      "checkImages": "Comprobar imágenes",
+      "checkDocuments": "Comprobar documentos"
+    }
+  },
+  "subscription": {
+    "freePlan": "Plan gratuito",
+    "proPlan": "Plan Pro",
+    "upgrade": "Mejorar",
+    "upgradeToPro": "Mejorar a Pro",
+    "proFeature": "Función Pro",
+    "proFeatures": "Escaneos ilimitados • URLs ilimitadas por escaneo",
+    "urlLimit": "Máximo {{max}} URL por escaneo",
+    "unlockFeatures": "Desbloquea todas las funciones",
+    "expiresOn": "Expira el",
+    "resume": {
+      "button": "Reanudar suscripción",
+      "processing": "Reanudando...",
+      "success": "Tu suscripción se ha reanudado correctamente.",
+      "error": "Error al reanudar la suscripción. Inténtalo de nuevo."
+    },
+    "cancelButton": "Cancelar suscripción",
+    "cancel": {
+      "button": "Cancelar suscripción",
+      "confirmTitle": "Confirmar cancelación",
+      "confirmMessage": "¿Seguro que quieres cancelar tu suscripción? Mantendrás acceso a las funciones Pro hasta el final del periodo de facturación actual.",
+      "processing": "Cancelando...",
+      "confirmYes": "Sí, cancelar",
+      "confirmNo": "No, mantener suscripción",
+      "scheduledInfo": "⚠️ Tu suscripción se cancelará al final del periodo de facturación actual.",
+      "scheduledAlert": "Tu suscripción se cancelará al final del periodo de facturación actual.",
+      "error": "Error al cancelar la suscripción. Inténtalo de nuevo."
+    },
+    "limits": {
+      "scansPerMonth": "Escaneos por mes",
+      "linksPerScan": "Enlaces por escaneo",
+      "historyRetention": "Retención del historial",
+      "scheduling": "Planificación automática",
+      "emailReports": "Informes por correo",
+      "priority": "Soporte prioritario"
+    },
+    "values": {
+      "unlimited": "Ilimitado",
+      "days": "{{count}} días",
+      "included": "Incluido",
+      "notIncluded": "No incluido"
+    }
+  },
+  "scheduler": {
+    "title": "Programador de escaneos",
+    "description": "Programa escaneos automáticos de enlaces",
+    "enabled": "Activar programación",
+    "frequency": "Frecuencia",
+    "frequencies": {
+      "daily": "Diaria",
+      "weekly": "Semanal",
+      "monthly": "Mensual"
+    },
+    "nextScan": "Próximo escaneo",
+    "lastScan": "Último escaneo",
+    "save": "Guardar programación",
+    "proFeature": "Función Pro",
+    "proDescription": "La programación automática solo está disponible con el plan Pro.",
+    "upgradeButton": "Mejorar a Pro",
+    "emailSettings": "Configuración de correo",
+    "emailEnabled": "Activar notificaciones por email",
+    "emailAddress": "Dirección de correo",
+    "emailHint": "Rellenado con el correo del administrador de WordPress (editable).",
+    "scheduleType": "Tipo de programación",
+    "oneTime": "Única vez",
+    "oneTimeHint": "Ejecutar en una fecha y hora específicas",
+    "recurring": "Recurrente",
+    "recurringHint": "Repetir en un intervalo definido",
+    "selectDateTime": "Selecciona fecha y hora",
+    "timezone": "Zona horaria",
+    "repeatEvery": "Repetir cada",
+    "days": "días",
+    "executionTime": "Hora de ejecución",
+    "createSchedule": "Crear programación",
+    "activeSchedules": "Programaciones activas",
+    "noActiveSchedules": "No hay programaciones activas.",
+    "createFirstSchedule": "Crea tu primera programación arriba.",
+    "nextExecution": "Próxima ejecución",
+    "pending": "Pendiente",
+    "inactive": "Inactiva",
+    "active": "Activa",
+    "delete": "Eliminar",
+    "deleteConfirm": "¿Eliminar esta programación?",
+    "scheduleHistory": "Historial de ejecuciones",
+    "noHistory": "Sin historial de ejecuciones.",
+    "clearHistory": "Vaciar historial",
+    "clearHistoryConfirm": "¿Vaciar todo el historial de ejecuciones?",
+    "executedAt": "Ejecutado el",
+    "success": "Éxito",
+    "failed": "Fallo",
+    "errorInvalidDays": "Número de días no válido",
+    "errorSelectDateTime": "Elige una fecha/hora",
+    "errorCreate": "Error al añadir",
+    "errorUpdate": "No se pudo actualizar",
+    "errorDelete": "Error al eliminar",
+    "errorLoad": "Error al cargar",
+    "errorClearHistory": "Error al limpiar el historial",
+    "scheduleDescriptions": {
+      "oneTime": "Una vez el {{date}}",
+      "recurring": "Cada {{days}} días, a las {{time}} ({{timezone}})",
+      "default": "Programación"
+    },
+    "recurringEvery": "Cada",
+    "daysAt": "días, a las",
+    "notifyByEmail": "Notificar por email",
+    "add": "Añadir",
+    "scheduled": "Tareas programadas",
+    "nextRun": "Siguiente ejecución"
+  },
+  "privacy": {
+    "title": "Política de privacidad",
+    "lastUpdatedLabel": "Última actualización",
+    "lastUpdatedDate": "4 de septiembre de 2024",
+    "intro": "Nos importa proteger tus datos personales. Esta política explica qué datos procesa el plugin, con qué propósito y cuáles son tus derechos.",
+    "contactEmail": "pro@linkfixer.io",
+    "sections": {
+      "responsable": {
+        "title": "Responsable del tratamiento",
+        "body": "El responsable del tratamiento es el editor del plugin Link Fixer. Este plugin se ejecuta dentro de tu sitio WordPress y no recopila datos sin tu acción."
+      },
+      "data": {
+        "title": "Datos tratados",
+        "p1": "Al analizar enlaces, el plugin procesa URLs, estados de respuesta HTTP (por ejemplo, 200, 404, redirecciones), ubicaciones donde se encuentran los enlaces (entradas, páginas, menús, widgets) y marcas de tiempo de verificación.",
+        "p2": "Si activas la exportación en PDF o el envío por email (si está disponible en tu plan), la información necesaria para estas funciones también se utiliza para generar y entregar informes."
+      },
+      "purposes": {
+        "title": "Finalidades y base legal",
+        "body": "Los datos se procesan para identificar enlaces rotos y mejorar la calidad de tu sitio (interés legítimo en el correcto funcionamiento y mantenimiento del sitio)."
+      },
+      "retention": {
+        "title": "Conservación",
+        "body": "El historial de escaneos (si está activado) se almacena localmente en tu instalación de WordPress según tu configuración. Puedes borrarlo en cualquier momento desde la interfaz del plugin."
+      },
+      "sharing": {
+        "title": "Compartición y transferencias",
+        "body": "Los datos tratados por el plugin permanecen en tu entorno de WordPress. No se comparte información con terceros salvo que elijas utilizar servicios externos (pagos, emails) bajo sus condiciones."
+      },
+      "rights": {
+        "title": "Tus derechos",
+        "intro": "En virtud del RGPD, dispones de los siguientes derechos:",
+        "list": [
+          "Derecho de acceso a tus datos",
+          "Derecho de rectificación si son inexactos",
+          "Derecho de oposición al tratamiento",
+          "Derecho de supresión (dentro de los límites legales)"
+        ],
+        "outro": "Para ejercer tus derechos, utiliza los datos de contacto facilitados por el editor del plugin."
+      },
+      "contact": {
+        "title": "Contacto",
+        "body": "Para cualquier pregunta sobre esta política o tus datos, puedes escribirnos a:"
+      }
+    }
+  },
+  "payment": {
+    "title": "Elige un plan",
+    "subtitle": "Libera todo el potencial de tu escáner de enlaces para WordPress",
+    "description": "Elige el plan que mejor se adapte a ti",
+    "monthly": "Mensual",
+    "yearly": "Anual",
+    "save": "Ahorra {{percent}}%",
+    "selectPlan": "Seleccionar este plan",
+    "choosePlan": "Elegir este plan",
+    "chooseFree": "Elegir",
+    "processing": "Procesando...",
+    "success": "¡Pago realizado con éxito!",
+    "error": "Error de pago",
+    "errorStart": "No es posible iniciar el pago por ahora.",
+    "errorLoadingPlans": "No se pueden cargar los planes",
+    "freePerMonth": "0 € / mes",
+    "priceEurPerMonth": "{{price}} € / mes",
+    "priceGenericPerMonth": "{{price}} {{currency}} / mes",
+    "recommended": "Recomendado",
+    "freeTitle": "Gratis",
+    "freePrice": "0 € / mes",
+    "proTitle": "Pro",
+    "proPrice": "5 € / mes",
+    "tryFree": "Probar gratis",
+    "upgradePro": "Mejorar a Pro",
+    "currentPlan": "Plan actual",
+    "continueToPayment": "Continuar al pago",
+    "compare": {
+      "features": {
+        "linkScans": "Escaneos de enlaces",
+        "detailedReports": "Informes detallados",
+        "scanHistory": "Historial de escaneos",
+        "scanScheduling": "Programación de escaneos",
+        "emailDelivery": "Envío por email"
+      },
+      "proReports": "Avanzado + PDF"
+    },
+    "modal": {
+      "title": "Pago",
+      "subtitle": "Introduce tus datos de tarjeta de forma segura",
+      "missingKey": "Falta la clave de Stripe. Configura VITE_STRIPE_API_KEY en tu .env.",
+      "chosenPlan": "Plan seleccionado",
+      "cardInfo": "Datos de la tarjeta",
+      "testCardHint": "Usa una tarjeta de prueba de Stripe, por ejemplo 4242 4242 4242 4242",
+      "validateCard": "Validar tarjeta",
+      "validating": "Validando…",
+      "cardValidated": "Tarjeta validada — PaymentMethod: {{id}}"
+    },
+    "features": {
+      "limitedScan": "Escaneo limitado (p. ej. 100 enlaces / escaneo)",
+      "basicHistory": "Historial básico",
+      "unlimitedScans": "Escaneos ilimitados",
+      "pdfReports": "Generación de informe PDF",
+      "scheduledTasks": "Tareas programadas (cron semanal)",
+      "prioritySupport": "Soporte prioritario"
+    },
+    "checkout": {
+      "emailLabel": "Email",
+      "emailPlaceholder": "tú@example.com",
+      "payAmount": "Pagar {{amount}} {{currency}}"
+    }
+  },
+  "connection": {
+    "title": "Conectar con LinkFixer Cloud",
+    "description": "Antes de usar el escáner, conecta tu sitio a LinkFixer Cloud para activar las funciones. Esta acción registra tu sitio y genera una clave de acceso (no se comparte ningún dato sin tu consentimiento).",
+    "connectButton": "Conectar",
+    "sendVerificationButton": "Enviar email de verificación",
+    "resendVerificationButton": "Reenviar email",
+    "checkInboxTitle": "Revisa tu correo",
+    "checkInboxBody": "Hemos enviado un enlace de activación a {{email}}. Ábrelo y haz clic en el enlace para finalizar la verificación.",
+    "checkInboxHint": "Si no lo ves enseguida, revisa las carpetas de spam o promociones.",
+    "emailUsageHint": "Usamos tu correo para crear tu espacio Link Fixer y agrupar tus escaneos. No se requiere contraseña.",
+    "useDifferentEmail": "Usar otro correo",
+    "consentTitle": "Autorizar esta conexión",
+    "consentDescription": "Tu sitio WordPress se conectará con la dirección {{email}}. No se enviará ningún correo.",
+    "consentHint": "Al aceptar, autorizas a Link Fixer a crear una cuenta para analizar tus enlaces.",
+    "acceptConsent": "Autorizar y continuar",
+    "cancelConsent": "Cancelar",
+    "statusTitle": "Estado de la conexión",
+    "connected": "Conectado",
+    "notConnected": "No conectado",
+    "error": "La conexión ha fallado. Inténtalo de nuevo.",
+    "disconnectButton": "Eliminar cuenta",
+    "disconnectConfirm": "¿Realmente quieres eliminar la cuenta vinculada y desconectarte? Deberás volver a conectarte para usar el servicio.",
+    "disconnectSuccess": "Cuenta eliminada localmente. Has quedado desconectado.",
+    "disconnectError": "No se pudo eliminar la cuenta. Inténtalo de nuevo."
+  },
+  "errors": {
+    "general": "Ocurrió un error",
+    "network": "Error de red",
+    "timeout": "Se superó el tiempo de espera",
+    "unauthorized": "No autorizado",
+    "forbidden": "Acceso prohibido",
+    "notFound": "No encontrado",
+    "serverError": "Error del servidor",
+    "clearHistory": "Fallo al limpiar. Revisa los registros.",
+    "pdfDownload": "No se puede descargar el PDF en este momento."
+  },
+  "report": {
+    "title": "Informe de escaneo de enlaces",
+    "dateLabel": "Fecha del informe",
+    "sampleTitle": "Muestra de enlaces",
+    "downloadPdf": "Descargar PDF",
+    "downloading": "Descargando…",
+    "noScan": "No hay ningún escaneo en curso"
+  },
+  "pagination": {
+    "rowsPerPage": "Filas por página",
+    "showCount": "{{count}}",
+    "pageOf": "Página {{page}} de {{total}}",
+    "previous": "Anterior",
+    "next": "Siguiente"
+  },
+  "locale": "es-ES"
+}

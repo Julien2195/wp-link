@@ -43,7 +43,7 @@ api.interceptors.request.use((config) => {
   // Locale header for backend translations (optional)
   try {
     const lang = isBrowser ? localStorage.getItem('wpls.language') : null;
-    if (lang && (lang === 'en' || lang === 'fr')) {
+    if (lang && ['en', 'fr', 'es'].includes(lang)) {
       headers['X-Locale'] = lang;
     }
   } catch (_) {}
