@@ -355,6 +355,11 @@ if (!class_exists('WP_Link_Scanner')) {
                 'Accept' => 'application/json',
             ];
 
+            $site_url = esc_url_raw(home_url());
+            if (!empty($site_url)) {
+                $headers['X-WP-Site-URL'] = $site_url;
+            }
+
             $api_key = $this->get_api_key();
             error_log('[LinkFixer] forward_to_remote_api: api_key = ' . ($api_key ? '[PRESENT]' : '[EMPTY]'));
             if (!empty($api_key)) {
